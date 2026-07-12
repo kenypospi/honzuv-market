@@ -1,0 +1,34 @@
+[
+  {
+    "id": "250002",
+    "nazev": "Kuřecí prsní řízky cca 2,5 kg",
+    "cena": 144.9,
+    "kategorie": "Stálá nabídka",
+    "popis": "Balení 2,5 kg, původ Evropský chov",
+    "hmotnostKg": 2.5
+  },
+  {
+    "id": "701804",
+    "nazev": "Eidam 30 % cihla (ČR) cca 2,7 kg",
+    "cena": 94.9,
+    "kategorie": "Akční nabídka",
+    "popis": "",
+    "hmotnostKg": 2.7
+  },
+  {
+    "id": "502010",
+    "nazev": "Kuba 48 x 50 ml",
+    "cena": 12.9,
+    "kategorie": "Stálá nabídka",
+    "popis": "Tvarohová zmrzlina s čokoládovou polevou",
+    "kusyVKartonu": 48
+  },
+  {
+    "id": "500010",
+    "nazev": "Mrož jahodový s tvarohem v tmavé polevě 48 x 45 ml",
+    "cena": 12.9,
+    "kategorie": "Stálá nabídka",
+    "popis": "Tvarohová zmrzlina s čokoládovou polevou",
+    "kusyVKartonu": 48
+  }
+]
