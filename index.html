@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Honzův Market</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="#" aria-label="Honzův Market">
+            <span class="brand-mark">HM</span>
+            <span>
+                <strong>Honzův Market</strong>
+                <small>Potraviny za férové ceny</small>
+            </span>
+        </a>
+
+        <button class="cart-button" type="button" onclick="zobrazKosik()" aria-label="Otevřít košík">
+            Košík <span id="pocetKosik">0</span>
+        </button>
+    </header>
+
+    <main>
+        <section class="toolbar" aria-label="Filtry produktů">
+            <div class="filters" role="group" aria-label="Kategorie">
+                <button class="filter active" type="button" data-kategorie="Vše">Vše</button>
+                <button class="filter" type="button" data-kategorie="Akční nabídka">Akční nabídka</button>
+                <button class="filter" type="button" data-kategorie="Nejprodávanější">Nejprodávanější</button>
+                <button class="filter" type="button" data-kategorie="Stálá nabídka">Stálá nabídka</button>
+            </div>
+
+            <label class="search">
+                <span>Hledat</span>
+                <input type="search" id="hledat" placeholder="Název nebo ID produktu">
+            </label>
+        </section>
+
+        <section id="obsah" class="products" aria-live="polite"></section>
+    </main>
+
+    <div id="prekryvKosiku" class="cart-overlay" onclick="zavriKosik()" hidden></div>
+
+    <aside id="oknoKosiku" class="cart-modal" aria-labelledby="cartTitle" aria-modal="true" role="dialog" hidden>
+        <div class="cart-head">
+            <h2 id="cartTitle">Můj košík</h2>
+            <button class="icon-button" type="button" onclick="zavriKosik()" aria-label="Zavřít košík">×</button>
+        </div>
+
+        <div id="obsahKosiku" class="cart-content"></div>
+
+        <div class="cart-actions">
+            <button class="primary" type="button" onclick="odeslatWhatsApp()">Objednat přes WhatsApp</button>
+            <button class="secondary" type="button" onclick="vyprazdniKosik()">Vyprázdnit košík</button>
+        </div>
+    </aside>
+
+    <script src="script.js?v=20260712-doprava-kg"></script>
+</body>
+</html>
