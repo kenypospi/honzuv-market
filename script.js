@@ -108,7 +108,10 @@ function produktyZCsv(rows) {
     const indexNazvu = najdiSloupec(hlavicka, ["nazev produktu", "nazev"]);
     const indexBaleni = najdiSloupec(hlavicka, ["baleni"]);
     const indexKategorie = najdiSloupec(hlavicka, ["kategorie"]);
-    const indexCeny = najdiSloupec(hlavicka, ["cena za baleni kc", "cena"]);
+    // V Honzově Marketu je cena v Google tabulce vždy ZA 1 KG.
+    // Bereme proto přednostně sloupec "Cena za kg"; pokud má tabulka
+    // obecný název "Cena", používáme ho také jako cenu za kg.
+    const indexCenyKg = najdiSloupec(hlavicka, ["cena za kg", "cena kg", "cena"]);
     const indexAkce = najdiSloupec(hlavicka, ["akcni produkt ano ne", "akcni produkt", "akce"]);
     const indexVyprodej = najdiSloupec(hlavicka, ["vyprodej ano ne", "vyprodej"]);
     const indexViditelnosti = najdiSloupec(hlavicka, ["zobrazit na webu ano ne", "zobrazit na webu", "zobrazit"]);
@@ -117,8 +120,8 @@ function produktyZCsv(rows) {
     const indexNovinka = najdiSloupec(hlavicka, ["novinka"]);
     const indexDoporucujeme = najdiSloupec(hlavicka, ["doporucujeme"]);
 
-    if (indexKodu === -1 || indexCeny === -1) {
-        throw new Error("Google tabulka Ceny musí obsahovat Kód produktu a Cena za balení (Kč).");
+    if (indexKodu === -1 || indexCenyKg === -1) {
+        throw new Error("Google tabulka Ceny musí obsahovat Kód produktu a cenu za 1 kg.");
     }
 
     return rows.slice(1).map(row => ({
@@ -127,10 +130,10 @@ function produktyZCsv(rows) {
         baleni: indexBaleni >= 0 ? String(row[indexBaleni] || "").trim() : "",
         kategorie: indexKategorie >= 0 ? String(row[indexKategorie] || "").trim() : "",
         podkategorie: indexPodkategorie >= 0 ? String(row[indexPodkategorie] || "").trim() : "",
-        cena: prevedCenu(row[indexCeny]),
-        akce: /^(ano|yes|1|true)$/i.test(String(row[indexAkce] || "").trim()),
-        vyprodej: /^(ano|yes|1|true)$/i.test(String(row[indexVyprodej] || "").trim()),
-        zobrazit: !/^(ne|no|0|false)$/i.test(String(row[indexViditelnosti] || "").trim()),
+        cena: prevedCenu(row[indexCenyKg]),
+        akce: indexAkce >= 0 && /^(ano|yes|1|true)$/i.test(String(row[indexAkce] || "").trim()),
+        vyprodej: indexVyprodej >= 0 && /^(ano|yes|1|true)$/i.test(String(row[indexVyprodej] || "").trim()),
+        zobrazit: indexViditelnosti < 0 || !/^(ne|no|0|false)$/i.test(String(row[indexViditelnosti] || "").trim()),
         nejprodavanejsi: indexNejprodavanejsi >= 0 && /^(ano|yes|1|true)$/i.test(String(row[indexNejprodavanejsi] || "").trim()),
         novinka: indexNovinka >= 0 && /^(ano|yes|1|true)$/i.test(String(row[indexNovinka] || "").trim()),
         doporucujeme: indexDoporucujeme >= 0 && /^(ano|yes|1|true)$/i.test(String(row[indexDoporucujeme] || "").trim())
@@ -311,7 +314,7 @@ function vykresliProdukty() {
                     <div class="price-row">
                         <span class="price ${maCenu ? "" : "price-unavailable"}">
                             ${maCenu ? formatCena.format(cena) : "Cena bude doplněna"}
-                            <small>${maCenu ? `za balení${koeficientBaleni(produkt.baleni) > 1 ? ` · ${formatCena.format(cena / koeficientBaleni(produkt.baleni))}/kg` : ""}` : ""}</small>
+                            <small>${maCenu ? `za celé balení · ${formatCena.format(cena / koeficientBaleni(produkt.baleni))}/kg` : ""}</small>
                         </span>
                         <div class="product-actions">
                             <button class="add-button" type="button" onclick="pridejDoKosiku(${index})" ${maCenu ? "" : "disabled"}>${maCenu ? "Přidat" : "Není skladem"}</button>
@@ -494,32 +497,42 @@ function polozkyKosiku() {
 }
 
 function koeficientBaleni(baleni) {
-    const text = String(baleni || "").toLocaleLowerCase("cs-CZ").replace(",", ".");
-    // Např. "1 x 5 kg" = 5 kg, "1 x 800 g" = 0,8 kg.
-    const m = text.match(/(?:^|\s)(\d+(?:\.\d+)?)\s*x\s*(\d+(?:\.\d+)?)\s*(kg|g)\b/);
-    if (m) {
-        const pocet = Number(m[1]);
-        const hmotnost = Number(m[2]);
-        const kg = m[3] === "g" ? hmotnost / 1000 : hmotnost;
+    const text = String(baleni || "")
+        .toLocaleLowerCase("cs-CZ")
+        .replace(/\u00a0/g, " ")
+        .replace(",", ".")
+        .trim();
+
+    // "1 x 5 kg", "2 x 2.5 kg", "1 x 800 g"
+    const nasobene = text.match(/(\d+(?:\.\d+)?)\s*x\s*(\d+(?:\.\d+)?)\s*(kg|g)\b/);
+    if (nasobene) {
+        const pocet = Number(nasobene[1]);
+        const hmotnost = Number(nasobene[2]);
+        const kg = nasobene[3] === "g" ? hmotnost / 1000 : hmotnost;
         return pocet * kg;
     }
-    // Pokud je balení uvedené jen jako "5 kg" nebo "800 g".
-    const solo = text.match(/(^|\s)(\d+(?:\.\d+)?)\s*(kg|g)\b/);
-    if (solo) {
-        const hmotnost = Number(solo[2]);
-        return solo[3] === "g" ? hmotnost / 1000 : hmotnost;
+
+    // "10 kg", "cca 2.5 kg", "800 g"
+    const jednaHmotnost = text.match(/(\d+(?:\.\d+)?)\s*(kg|g)\b/);
+    if (jednaHmotnost) {
+        const hmotnost = Number(jednaHmotnost[1]);
+        return jednaHmotnost[2] === "g" ? hmotnost / 1000 : hmotnost;
     }
-    // "dle váhy" nemá pevnou hmotnost – cena z tabulky zůstává za 1 kg.
+
+    // Váhové zboží nemá pevné balení – cena zůstává za 1 kg.
     return 1;
 }
 
-// Cena v Google tabulce je cena za 1 kg. Web ji převádí na cenu celého balení.
+// DŮLEŽITÉ: cena uložená v Google tabulce = cena ZA 1 KG.
+// Web ji vždy přepočítá podle skutečné hmotnosti balení.
 function cenaProduktu(id) {
     const hodnota = ceny[String(id)];
     const cenaZaKg = typeof hodnota === "number" ? hodnota : Number(hodnota?.cena);
     if (!Number.isFinite(cenaZaKg)) return NaN;
+
     const produkt = produkty.find(p => p.id === String(id));
-    return cenaZaKg * koeficientBaleni(produkt?.baleni);
+    const kgVBaleni = koeficientBaleni(produkt?.baleni);
+    return cenaZaKg * kgVBaleni;
 }
 
 function maPriznak(id,klic){const h=ceny[String(id)];return typeof h==="object"&&h?.[klic]===true&&Number.isFinite(cenaProduktu(id));}
