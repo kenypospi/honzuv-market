@@ -671,10 +671,6 @@ main {
 .akce-badge { display:inline-flex; padding:4px 8px; border-radius:999px; font-size:.72rem; font-weight:800; background:#fff1c7; color:#8a5a00; margin-bottom:6px; }
 .category-count { float:right; opacity:.6; font-size:.8rem; }
 
-/* Honzův Market – gastro zobrazení */
 .price{display:flex;flex-direction:column;gap:4px}
 .price small{font-size:.78rem;font-weight:500;opacity:.78}
 .category-count{font-weight:500;opacity:.65;font-size:.82em}
-.cart-item>div:last-child{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
-.cart-line-total{font-size:.78rem;opacity:.75}
-.add-button.added{transform:scale(.98)}
