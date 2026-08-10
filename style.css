@@ -671,11 +671,6 @@ main {
 .akce-badge { display:inline-flex; padding:4px 8px; border-radius:999px; font-size:.72rem; font-weight:800; background:#fff1c7; color:#8a5a00; margin-bottom:6px; }
 .category-count { float:right; opacity:.6; font-size:.8rem; }
 
-/* FINAL: cena na kartě = za kg, košík = celé balení */
-.price { display:flex; flex-direction:column; gap:3px; }
-.price small { display:block; font-size:.78rem; font-weight:500; opacity:.78; }
-.card-qty { display:flex; align-items:center; gap:8px; }
-.card-qty button { width:34px; height:34px; border:1px solid #d7e1db; border-radius:9px; background:#fff; font-size:21px; line-height:1; cursor:pointer; }
-.card-qty strong { min-width:24px; text-align:center; font-size:1rem; }
-.category-link, .subcategory-link { display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%; }
-.category-count { margin-left:auto; min-width:24px; text-align:center; padding:2px 7px; border-radius:999px; background:#eef5f0; font-size:.75rem; opacity:.8; }
+.price{display:flex;flex-direction:column;gap:4px}.price small{font-size:.78rem;font-weight:500;opacity:.78}
+.card-qty{display:flex;align-items:center;gap:8px}.card-qty button{width:34px;height:34px;border:1px solid #d7e1db;border-radius:9px;background:#fff;font-size:20px;cursor:pointer}.card-qty strong{min-width:22px;text-align:center}
+.category-count{margin-left:auto;padding:2px 7px;border-radius:999px;background:#eef5f0;font-size:.75rem;opacity:.8}
