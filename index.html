@@ -36,7 +36,13 @@
             </label>
         </section>
 
-        <section id="obsah" class="products" aria-live="polite"></section>
+        <div class="catalog-layout">
+            <aside class="category-sidebar" aria-label="Skupiny produktů">
+                <h2>Skupiny produktů</h2>
+                <nav id="seznamKategorii" class="category-list"></nav>
+            </aside>
+            <section id="obsah" class="products" aria-live="polite"></section>
+        </div>
     </main>
 
     <div id="prekryvKosiku" class="cart-overlay" onclick="zavriKosik()" hidden></div>
@@ -55,6 +61,9 @@
         </div>
     </aside>
 
-    <script src="script.js?v=20260712-doprava-kg"></script>
+    <script src="katalog.js"></script>
+    <script src="ceny.js"></script>
+    <script src="nastaveni.js"></script>
+    <script src="script.js?v=20260810-google-admin-v2"></script>
 </body>
 </html>

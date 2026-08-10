@@ -22,7 +22,8 @@ body {
 }
 
 button,
-input {
+input,
+textarea {
     font: inherit;
 }
 
@@ -77,6 +78,19 @@ button {
     margin-top: 2px;
     color: rgba(255, 255, 255, .86);
     font-size: 16px;
+}
+
+.contact-phone {
+    margin-left: auto;
+    color: rgba(255, 255, 255, .92);
+    font-size: 15px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.contact-phone:hover {
+    text-decoration: underline;
 }
 
 .cart-button {
@@ -184,6 +198,61 @@ main {
     padding-bottom: 64px;
 }
 
+.catalog-layout {
+    display: grid;
+    grid-template-columns: 230px minmax(0, 1fr);
+    gap: 22px;
+    align-items: start;
+    padding-bottom: 64px;
+}
+
+.catalog-layout .products {
+    padding-bottom: 0;
+}
+
+.category-sidebar {
+    position: sticky;
+    top: 132px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: white;
+    box-shadow: 0 10px 28px rgba(18, 35, 24, .08);
+}
+
+.category-sidebar h2 {
+    margin: 0;
+    padding: 16px;
+    border-bottom: 1px solid var(--line);
+    color: var(--green-dark);
+    font-size: 17px;
+}
+
+.category-list {
+    display: grid;
+    padding: 8px;
+}
+
+.category-link {
+    width: 100%;
+    padding: 11px 10px;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--ink);
+    font-weight: 700;
+    text-align: left;
+}
+
+.category-link:hover {
+    background: var(--soft);
+}
+
+.category-link.active {
+    background: #ecf7ef;
+    color: var(--green-dark);
+}
+
 .card {
     overflow: hidden;
     border: 1px solid var(--line);
@@ -263,6 +332,16 @@ main {
     color: var(--muted);
     font-size: 13px;
     font-weight: 700;
+}
+
+.price-unavailable {
+    color: var(--muted);
+    font-size: 18px;
+}
+
+.add-button:disabled {
+    cursor: not-allowed;
+    background: #aab5ad;
 }
 
 .add-button {
@@ -421,6 +500,30 @@ main {
     accent-color: var(--green);
 }
 
+.delivery-address {
+    display: grid !important;
+    gap: 6px !important;
+}
+
+.delivery-address span {
+    font-weight: 800;
+}
+
+.delivery-address em {
+    color: #b42318;
+    font-style: normal;
+}
+
+.delivery-address textarea {
+    width: 100%;
+    resize: vertical;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: white;
+    color: var(--ink);
+}
+
 .cart-actions {
     display: grid;
     gap: 10px;
@@ -460,11 +563,34 @@ main {
         display: none;
     }
 
+    .contact-phone {
+        margin-left: 0;
+        font-size: 13px;
+    }
+
     .toolbar {
         grid-template-columns: 1fr;
+    }
+
+    .catalog-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .category-sidebar {
+        position: static;
+    }
+
+    .category-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 4px;
     }
 
     .search {
         order: -1;
     }
 }
+
+.category-group{margin:0;border-bottom:1px solid #e7e7e7;padding-bottom:6px;margin-bottom:6px}
+.subcategory-list{padding:3px 0 4px 12px;display:flex;flex-direction:column;gap:2px}
+.subcategory-link{border:0;background:transparent;text-align:left;padding:5px 8px;border-radius:6px;cursor:pointer;font:inherit;color:#555}
+.subcategory-link:hover,.subcategory-link.active{background:#f1f6f2;color:#147a36}
