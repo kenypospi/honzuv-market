@@ -6,11 +6,14 @@ const FILTR_NEJPRODAVANEJSI = "__nejprodavanejsi__";
 const FILTR_NOVINKY = "__novinky__";
 const FILTR_VYPRODEJ = "__vyprodej__";
 const FILTR_DOPORUCUJEME = "__doporucujeme__";
+const FILTR_OBLIBENE = "__oblibene__";
 const FILTR_STALA_NABIDKA = "__stala_nabidka__";
 let produkty = [];
 let ceny = {};
 let kosik = nactiKosik();
 let zpusobDopravy = nactiZpusobDopravy();
+const OBLIBENE_STORAGE_KEY = "honzuv-market-oblibene-v1";
+let oblibene = new Set(JSON.parse(localStorage.getItem(OBLIBENE_STORAGE_KEY) || "[]").map(String));
 let aktivniKategorie = FILTR_VSE;
 let hledanyText = "";
 let dodaciAdresa = "";
@@ -255,7 +258,7 @@ function vytvorFiltry() {
         {sekce:"vyprodej",nazev:nastaveni.vyprodej_nazev||"Výprodej"},
         {sekce:"doporucujeme",nazev:"Doporučujeme"}
     ]).filter(s=>map[s.sekce]);
-    const buttons=[[FILTR_VSE,"Vše"],...sekce.map(s=>[map[s.sekce],s.nazev])];
+    const buttons=[[FILTR_VSE,"Vše"],...sekce.map(s=>[map[s.sekce],s.nazev]),[FILTR_OBLIBENE,`♥ Oblíbené (${oblibene.size})`]];
     filtry.innerHTML=buttons.map(([v,n])=>`<button class="filter" type="button" data-kategorie="${escapeHtml(v)}">${escapeHtml(n)}</button>`).join("");
     filtry.querySelectorAll(".filter").forEach(b=>b.addEventListener("click",()=>filtrKategorie(b.dataset.kategorie)));
 
@@ -315,6 +318,27 @@ function vykresliProdukty() {
     });
 }
 
+function ulozOblibene() {
+    localStorage.setItem(OBLIBENE_STORAGE_KEY, JSON.stringify([...oblibene]));
+}
+function jeOblibeny(id) {
+    return oblibene.has(String(id));
+}
+function prepinOblibene(id) {
+    const key = String(id);
+    if (oblibene.has(key)) oblibene.delete(key);
+    else oblibene.add(key);
+    ulozOblibene();
+    vykresli();
+}
+function pridejOblibeneDoKosiku() {
+    [...oblibene].forEach(id => {
+        const produkt = produkty.find(p => String(p.id) === String(id));
+        if (produkt && jeProduktViditelny(id) && Number.isFinite(cenaProduktu(id))) {
+            pridejDoKosiku(id, 1);
+        }
+    });
+}
 function filtrujProdukty() {
     const hledani=hledanyText.toLocaleLowerCase("cs-CZ").trim();
     return produkty.filter(p=>{
@@ -326,6 +350,7 @@ function filtrujProdukty() {
         else if(aktivniKategorie===FILTR_NOVINKY) ok=jeNovinka(p.id);
         else if(aktivniKategorie===FILTR_VYPRODEJ) ok=jeVyprodej(p.id);
         else if(aktivniKategorie===FILTR_DOPORUCUJEME) ok=jeDoporucujeme(p.id);
+        else if(aktivniKategorie===FILTR_OBLIBENE) ok=jeOblibeny(p.id);
         else if(aktivniKategorie===FILTR_STALA_NABIDKA) ok=jeStalaNabidka(p.id);
         else if(aktivniKategorie.startsWith("__podkategorie__")) { const [k,pod]=aktivniKategorie.slice(16).split("||"); ok=p.kategorie===k&&p.podkategorie===pod; }
         else ok=p.kategorie===aktivniKategorie;
@@ -495,3 +520,16 @@ function nactiZpusobDopravy() { return localStorage.getItem("honzuvMarketDoprava
 function synchronizujKosik() { kosik = kosik.map(polozka => ({ id: String(polozka.id), pocet: Number(polozka.pocet) || 0 })).filter(polozka => polozka.pocet > 0 && produkty.some(produkt => produkt.id === polozka.id) && Number.isFinite(cenaProduktu(polozka.id))); ulozKosik(); }
 function escapeHtml(hodnota) { return String(hodnota ?? "").replace(/[&<>'\"]/g, znak => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[znak]); }
 function escapeJs(hodnota) { return String(hodnota ?? "").replace(/\\/g, "\\\\").replace(/'/g, "\\'"); }
+
+document.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-oblibene]");
+    if (!button) return;
+    event.preventDefault();
+    event.stopPropagation();
+    prepinOblibene(button.dataset.oblibene);
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+    const button = document.getElementById("pridejOblibene");
+    if (button) button.addEventListener("click", pridejOblibeneDoKosiku);
+});

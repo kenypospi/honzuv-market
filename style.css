@@ -594,3 +594,9 @@ main {
 .subcategory-list{padding:3px 0 4px 12px;display:flex;flex-direction:column;gap:2px}
 .subcategory-link{border:0;background:transparent;text-align:left;padding:5px 8px;border-radius:6px;cursor:pointer;font:inherit;color:#555}
 .subcategory-link:hover,.subcategory-link.active{background:#f1f6f2;color:#147a36}
+
+.product-card{position:relative}
+.favorite-btn{position:absolute;right:10px;top:10px;z-index:5;border:0;background:#fff;border-radius:999px;width:36px;height:36px;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.favorite-btn.is-favorite{font-weight:700}
+.favorite-btn:hover{transform:scale(1.06)}
+#pridejOblibene{margin:8px 0;padding:9px 12px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer}
