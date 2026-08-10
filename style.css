@@ -595,8 +595,22 @@ main {
 .subcategory-link{border:0;background:transparent;text-align:left;padding:5px 8px;border-radius:6px;cursor:pointer;font:inherit;color:#555}
 .subcategory-link:hover,.subcategory-link.active{background:#f1f6f2;color:#147a36}
 
-.product-card{position:relative}
-.favorite-btn{position:absolute;right:10px;top:10px;z-index:5;border:0;background:#fff;border-radius:999px;width:36px;height:36px;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.12)}
-.favorite-btn.is-favorite{font-weight:700}
-.favorite-btn:hover{transform:scale(1.06)}
-#pridejOblibene{margin:8px 0;padding:9px 12px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer}
+
+/* Moderní oblíbené */
+.favorites-hero{margin:18px 0 14px}
+.favorites-hero-card{width:100%;display:flex;align-items:center;gap:14px;text-align:left;padding:16px 18px;border:1px solid #eadfe2;border-radius:18px;background:linear-gradient(135deg,#fff,#fff7f8);box-shadow:0 5px 18px rgba(0,0,0,.07);cursor:pointer;transition:transform .18s ease,box-shadow .18s ease}
+.favorites-hero-card:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,0,0,.10)}
+.favorites-hero-icon{display:grid;place-items:center;width:46px;height:46px;border-radius:14px;background:#ffe9ed;color:#d6294e;font-size:25px;flex:0 0 auto}
+.favorites-hero-copy{display:flex;flex-direction:column;gap:3px;flex:1}
+.favorites-hero-copy strong{font-size:17px;color:#222}.favorites-hero-copy small{font-size:13px;color:#777}
+.favorites-count{min-width:34px;height:28px;padding:0 9px;display:grid;place-items:center;border-radius:999px;background:#fff;color:#c62246;font-weight:700;border:1px solid #f0cfd6}
+.favorites-hero-arrow{font-size:28px;line-height:1;color:#aaa}
+.favorites-actions{display:flex;justify-content:flex-end;margin-top:8px}
+.favorites-add-all{border:0;border-radius:10px;padding:9px 13px;background:#222;color:#fff;font-weight:600;cursor:pointer}
+.price-row{display:flex;align-items:center;gap:8px}
+.favorite-product-button{width:40px;height:40px;border:1px solid #ddd;border-radius:10px;background:#fff;color:#555;font-size:22px;line-height:1;cursor:pointer;display:grid;place-items:center;transition:all .15s ease}
+.favorite-product-button:hover{border-color:#d7aab4;background:#fff7f8;transform:translateY(-1px)}
+.favorite-product-button.is-favorite{color:#d6294e;border-color:#efc0ca;background:#fff0f3}
+.favorites-empty{text-align:center;padding:45px 20px;border:1px dashed #ddd;border-radius:16px;background:#fafafa}
+.favorites-empty-icon{font-size:48px;color:#d6294e;margin-bottom:8px}.favorites-empty h3{margin:0 0 7px}.favorites-empty p{margin:0;color:#777}
+@media(max-width:600px){.favorites-hero-card{padding:13px 14px;gap:10px}.favorites-hero-icon{width:42px;height:42px}.favorites-hero-copy strong{font-size:15px}.favorites-hero-copy small{font-size:12px}.favorite-product-button{width:38px;height:38px}}

@@ -13,7 +13,8 @@ let ceny = {};
 let kosik = nactiKosik();
 let zpusobDopravy = nactiZpusobDopravy();
 const OBLIBENE_STORAGE_KEY = "honzuv-market-oblibene-v1";
-let oblibene = new Set(JSON.parse(localStorage.getItem(OBLIBENE_STORAGE_KEY) || "[]").map(String));
+let oblibene = new Set();
+try { oblibene = new Set(JSON.parse(localStorage.getItem(OBLIBENE_STORAGE_KEY) || "[]").map(String)); } catch(e) {}
 let aktivniKategorie = FILTR_VSE;
 let hledanyText = "";
 let dodaciAdresa = "";
@@ -282,11 +283,13 @@ function vykresliProdukty() {
     obsah.innerHTML = "";
 
     if (zobrazeno.length === 0) {
-        const zprava = aktivniKategorie === FILTR_AKCE
-            ? "Zatím zde není žádné akční zboží. V Google tabulce produkt označte ve sloupci Akční produkt jako Ano."
-            : aktivniKategorie === FILTR_VYPRODEJ
-                ? "Zatím zde není žádný produkt ve výprodeji. V Google tabulce jej označte ve sloupci Výprodej jako Ano."
-                : "Žádný produkt neodpovídá hledání.";
+        const zprava = aktivniKategorie === FILTR_OBLIBENE
+            ? `<div class="favorites-empty"><div class="favorites-empty-icon">♡</div><h3>Zatím nemáte žádné oblíbené produkty</h3><p>U produktu klikněte na srdíčko a uloží se vám sem pro příště.</p></div>`
+            : aktivniKategorie === FILTR_AKCE
+                ? "Zatím zde není žádné akční zboží. V Google tabulce produkt označte ve sloupci Akční produkt jako Ano."
+                : aktivniKategorie === FILTR_VYPRODEJ
+                    ? "Zatím zde není žádný produkt ve výprodeji. V Google tabulce jej označte ve sloupci Výprodej jako Ano."
+                    : "Žádný produkt neodpovídá hledání.";
         obsah.innerHTML = `<div class="empty-state">${zprava}</div>`;
         return;
     }
@@ -297,7 +300,6 @@ function vykresliProdukty() {
         const maCenu = Number.isFinite(cena);
         obsah.insertAdjacentHTML("beforeend", `
             <article class="card">
-                <button class="favorite-btn ${jeOblibeny(produkt.id) ? "is-favorite" : ""}" type="button" data-oblibene="${escapeHtml(produkt.id)}" aria-label="${jeOblibeny(produkt.id) ? "Odebrat z oblíbených" : "Přidat do oblíbených"}">${jeOblibeny(produkt.id) ? "♥" : "♡"}</button>
                 <img src="Fotky/${encodeURIComponent(produkt.id)}.jpg" alt="${escapeHtml(produkt.nazev)}" class="product-photo" onerror="nahradFotkuSkupiny(this, '${escapeJs(produkt.fotkaSkupiny)}')" loading="lazy">
                 <div class="card-body">
                     <div class="product-meta">
@@ -309,9 +311,10 @@ function vykresliProdukty() {
                     <div class="price-row">
                         <span class="price ${maCenu ? "" : "price-unavailable"}">
                             ${maCenu ? formatCena.format(cena) : "Cena bude doplněna"}
-                            <small>${maCenu ? "za balení" : ""}</small>
+                            <small>${maCenu ? `za balení${koeficientBaleni(produkt.baleni) > 1 ? ` · ${formatCena.format(cena / koeficientBaleni(produkt.baleni))}/kg` : ""}` : ""}</small>
                         </span>
                         <button class="add-button" type="button" onclick="pridejDoKosiku(${index})" ${maCenu ? "" : "disabled"}>${maCenu ? "Přidat" : "Není skladem"}</button>
+                        <button class="favorite-product-button ${jeOblibeny(produkt.id) ? "is-favorite" : ""}" type="button" data-oblibene="${escapeHtml(produkt.id)}" aria-label="${jeOblibeny(produkt.id) ? "Odebrat z oblíbených" : "Přidat do oblíbených"}" title="${jeOblibeny(produkt.id) ? "Odebrat z oblíbených" : "Přidat do oblíbených"}">${jeOblibeny(produkt.id) ? "♥" : "♡"}</button>
                     </div>
                 </div>
             </article>
@@ -319,26 +322,21 @@ function vykresliProdukty() {
     });
 }
 
-function ulozOblibene() {
-    localStorage.setItem(OBLIBENE_STORAGE_KEY, JSON.stringify([...oblibene]));
+function ulozOblibene(){localStorage.setItem(OBLIBENE_STORAGE_KEY,JSON.stringify([...oblibene]));}
+function jeOblibeny(id){return oblibene.has(String(id));}
+function aktualizujOblibeneUI(){
+    const c=document.getElementById("favoritesCount"); if(c)c.textContent=String(oblibene.size);
+    const a=document.getElementById("favoritesActions"); if(a)a.hidden=oblibene.size===0;
+    const f=document.querySelector('.filter[data-kategorie="'+FILTR_OBLIBENE+'"]');
+    if(f)f.textContent=`♥ Oblíbené (${oblibene.size})`;
 }
-function jeOblibeny(id) {
-    return oblibene.has(String(id));
+function prepinOblibene(id){
+    const k=String(id); if(oblibene.has(k))oblibene.delete(k);else oblibene.add(k);
+    ulozOblibene(); aktualizujOblibeneUI(); vykresliProdukty();
 }
-function prepinOblibene(id) {
-    const key = String(id);
-    if (oblibene.has(key)) oblibene.delete(key);
-    else oblibene.add(key);
-    ulozOblibene();
-    vykresli();
-}
-function pridejOblibeneDoKosiku() {
-    [...oblibene].forEach(id => {
-        const produkt = produkty.find(p => String(p.id) === String(id));
-        if (produkt && jeProduktViditelny(id) && Number.isFinite(cenaProduktu(id))) {
-            pridejDoKosiku(id, 1);
-        }
-    });
+function pridejOblibeneDoKosiku(){
+    [...oblibene].forEach(id=>{const i=produkty.findIndex(p=>String(p.id)===String(id));if(i>=0&&jeProduktViditelny(id)&&Number.isFinite(cenaProduktu(id)))pridejDoKosiku(i);});
+    zobrazKosik();
 }
 function filtrujProdukty() {
     const hledani=hledanyText.toLocaleLowerCase("cs-CZ").trim();
@@ -486,9 +484,32 @@ function polozkyKosiku() {
     }).filter(polozka => polozka.produkt && Number.isFinite(polozka.cena));
 }
 
+function koeficientBaleni(baleni) {
+    const text = String(baleni || "").toLocaleLowerCase("cs-CZ").replace(",", ".");
+    // Např. "1 x 5 kg" = 5 kg, "1 x 800 g" = 0,8 kg.
+    const m = text.match(/(?:^|\\s)(\\d+(?:\\.\\d+)?)\\s*x\\s*(\\d+(?:\\.\\d+)?)\\s*(kg|g)\\b/);
+    if (m) {
+        const pocet = Number(m[1]);
+        const hmotnost = Number(m[2]);
+        const kg = m[3] === "g" ? hmotnost / 1000 : hmotnost;
+        return pocet * kg;
+    }
+    // Pokud je balení uvedené jen jako "5 kg" nebo "800 g".
+    const solo = text.match(/(^|\\s)(\\d+(?:\\.\\d+)?)\\s*(kg|g)\\b/);
+    if (solo) {
+        const hmotnost = Number(solo[2]);
+        return solo[3] === "g" ? hmotnost / 1000 : hmotnost;
+    }
+    // "dle váhy" nemá pevnou hmotnost – cena z tabulky zůstává za 1 kg.
+    return 1;
+}
+
 function cenaProduktu(id) {
     const hodnota = ceny[String(id)];
-    return typeof hodnota === "number" ? hodnota : Number(hodnota?.cena);
+    const cenaZaKg = typeof hodnota === "number" ? hodnota : Number(hodnota?.cena);
+    if (!Number.isFinite(cenaZaKg)) return NaN;
+    const produkt = produkty.find(p => p.id === String(id));
+    return cenaZaKg * koeficientBaleni(produkt?.baleni);
 }
 
 function maPriznak(id,klic){const h=ceny[String(id)];return typeof h==="object"&&h?.[klic]===true&&Number.isFinite(cenaProduktu(id));}
@@ -522,15 +543,16 @@ function synchronizujKosik() { kosik = kosik.map(polozka => ({ id: String(polozk
 function escapeHtml(hodnota) { return String(hodnota ?? "").replace(/[&<>'\"]/g, znak => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[znak]); }
 function escapeJs(hodnota) { return String(hodnota ?? "").replace(/\\/g, "\\\\").replace(/'/g, "\\'"); }
 
-document.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-oblibene]");
-    if (!button) return;
-    event.preventDefault();
-    event.stopPropagation();
-    prepinOblibene(button.dataset.oblibene);
-});
 
-document.addEventListener("DOMContentLoaded", () => {
-    const button = document.getElementById("pridejOblibene");
-    if (button) button.addEventListener("click", pridejOblibeneDoKosiku);
+document.addEventListener("click",(event)=>{
+    const b=event.target.closest("[data-oblibene]");
+    if(!b)return;
+    event.preventDefault(); event.stopPropagation(); prepinOblibene(b.dataset.oblibene);
+});
+document.addEventListener("DOMContentLoaded",()=>{
+    const hero=document.getElementById("favoritesHero");
+    if(hero)hero.addEventListener("click",()=>filtrKategorie(FILTR_OBLIBENE));
+    const addAll=document.getElementById("addAllFavorites");
+    if(addAll)addAll.addEventListener("click",pridejOblibeneDoKosiku);
+    aktualizujOblibeneUI();
 });
