@@ -662,15 +662,12 @@ main {
     .add-button{min-height:38px;padding:0 10px}
 }
 
-/* Honzův Market – moderní zobrazení cen a rychlé množství */
-.product-price { font-size: 1.65rem; font-weight: 800; }
-.product-unit { margin-top: 3px; font-size: .82rem; line-height: 1.35; }
-.card-qty { display:flex; align-items:center; gap:10px; }
-.card-qty button { width:34px; height:34px; border:1px solid #d8e2dc; border-radius:9px; background:#fff; font-size:20px; cursor:pointer; }
-.card-qty strong { min-width:20px; text-align:center; }
-.akce-badge { display:inline-flex; padding:4px 8px; border-radius:999px; font-size:.72rem; font-weight:800; background:#fff1c7; color:#8a5a00; margin-bottom:6px; }
-.category-count { float:right; opacity:.6; font-size:.8rem; }
-
+/* Gastro model */
 .price{display:flex;flex-direction:column;gap:4px}
 .price small{font-size:.78rem;font-weight:500;opacity:.78}
-.category-count{font-weight:500;opacity:.65;font-size:.82em}
+.card-qty{display:flex;align-items:center;gap:7px}
+.card-qty button{width:32px;height:32px;border:1px solid #d7e1db;border-radius:8px;background:#fff;font-size:20px;cursor:pointer}
+.card-qty strong{min-width:22px;text-align:center}
+.category-count{font-size:.8em;opacity:.65}
+.cart-line-total{font-size:.78rem;opacity:.72}
+#hodnotaKosiku{font-weight:700;margin-left:4px}
