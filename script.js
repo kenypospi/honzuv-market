@@ -259,7 +259,7 @@ function vytvorFiltry() {
         {sekce:"vyprodej",nazev:nastaveni.vyprodej_nazev||"Výprodej"},
         {sekce:"doporucujeme",nazev:"Doporučujeme"}
     ]).filter(s=>map[s.sekce]);
-    const buttons=[[FILTR_VSE,"Vše"],...sekce.map(s=>[map[s.sekce],s.nazev]),[FILTR_OBLIBENE,`♥ Oblíbené (${oblibene.size})`]];
+    const buttons=[[FILTR_VSE,"Vše"],...sekce.map(s=>[map[s.sekce],s.nazev])];
     filtry.innerHTML=buttons.map(([v,n])=>`<button class="filter" type="button" data-kategorie="${escapeHtml(v)}">${escapeHtml(n)}</button>`).join("");
     filtry.querySelectorAll(".filter").forEach(b=>b.addEventListener("click",()=>filtrKategorie(b.dataset.kategorie)));
 
@@ -313,8 +313,10 @@ function vykresliProdukty() {
                             ${maCenu ? formatCena.format(cena) : "Cena bude doplněna"}
                             <small>${maCenu ? `za balení${koeficientBaleni(produkt.baleni) > 1 ? ` · ${formatCena.format(cena / koeficientBaleni(produkt.baleni))}/kg` : ""}` : ""}</small>
                         </span>
-                        <button class="add-button" type="button" onclick="pridejDoKosiku(${index})" ${maCenu ? "" : "disabled"}>${maCenu ? "Přidat" : "Není skladem"}</button>
-                        <button class="favorite-product-button ${jeOblibeny(produkt.id) ? "is-favorite" : ""}" type="button" data-oblibene="${escapeHtml(produkt.id)}" aria-label="${jeOblibeny(produkt.id) ? "Odebrat z oblíbených" : "Přidat do oblíbených"}" title="${jeOblibeny(produkt.id) ? "Odebrat z oblíbených" : "Přidat do oblíbených"}">${jeOblibeny(produkt.id) ? "♥" : "♡"}</button>
+                        <div class="product-actions">
+                            <button class="add-button" type="button" onclick="pridejDoKosiku(${index})" ${maCenu ? "" : "disabled"}>${maCenu ? "Přidat" : "Není skladem"}</button>
+                            <button class="favorite-product-button ${jeOblibeny(produkt.id) ? "is-favorite" : ""}" type="button" data-oblibene="${escapeHtml(produkt.id)}" aria-label="${jeOblibeny(produkt.id) ? "Odebrat z oblíbených" : "Přidat do oblíbených"}" title="${jeOblibeny(produkt.id) ? "Odebrat z oblíbených" : "Přidat do oblíbených"}">${jeOblibeny(produkt.id) ? "♥" : "♡"}</button>
+                        </div>
                     </div>
                 </div>
             </article>
@@ -325,10 +327,15 @@ function vykresliProdukty() {
 function ulozOblibene(){localStorage.setItem(OBLIBENE_STORAGE_KEY,JSON.stringify([...oblibene]));}
 function jeOblibeny(id){return oblibene.has(String(id));}
 function aktualizujOblibeneUI(){
-    const c=document.getElementById("favoritesCount"); if(c)c.textContent=String(oblibene.size);
-    const a=document.getElementById("favoritesActions"); if(a)a.hidden=oblibene.size===0;
-    const f=document.querySelector('.filter[data-kategorie="'+FILTR_OBLIBENE+'"]');
-    if(f)f.textContent=`♥ Oblíbené (${oblibene.size})`;
+    const count=document.getElementById("favoritesCount");
+    if(count) count.textContent=String(oblibene.size);
+    const actions=document.getElementById("favoritesActions");
+    if(actions) actions.hidden=oblibene.size===0;
+    const hero=document.getElementById("favoritesHero");
+    if(hero){
+        hero.classList.toggle("is-active", aktivniKategorie===FILTR_OBLIBENE);
+        hero.setAttribute("aria-pressed", aktivniKategorie===FILTR_OBLIBENE ? "true" : "false");
+    }
 }
 function prepinOblibene(id){
     const k=String(id); if(oblibene.has(k))oblibene.delete(k);else oblibene.add(k);
@@ -367,6 +374,8 @@ function nastavAktivniTlacitko() {
     document.querySelectorAll(".filter").forEach(tlacitko => {
         tlacitko.classList.toggle("active", tlacitko.dataset.kategorie === aktivniKategorie);
     });
+    const hero=document.getElementById("favoritesHero");
+    if(hero) hero.classList.toggle("is-active", aktivniKategorie===FILTR_OBLIBENE);
     document.querySelectorAll(".category-link").forEach(tlacitko => {
         tlacitko.classList.toggle("active", tlacitko.dataset.kategorie === aktivniKategorie);
     });

@@ -22,6 +22,21 @@
     </header>
 
     <main>
+        <section id="favoritesHeroSection" class="favorites-hero" aria-label="Oblíbené produkty">
+            <button id="favoritesHero" class="favorites-hero-card" type="button" aria-label="Otevřít oblíbené produkty">
+                <span class="favorites-hero-icon" aria-hidden="true">♥</span>
+                <span class="favorites-hero-copy">
+                    <strong>Oblíbené produkty</strong>
+                    <small>Vaše uložené produkty na jednom místě</small>
+                </span>
+                <span id="favoritesCount" class="favorites-count">0</span>
+                <span class="favorites-hero-arrow" aria-hidden="true">›</span>
+            </button>
+            <div id="favoritesActions" class="favorites-actions" hidden>
+                <button id="addAllFavorites" class="favorites-add-all" type="button">Přidat všechna oblíbená do košíku</button>
+            </div>
+        </section>
+
         <section class="toolbar" aria-label="Filtry produktů">
             <div class="filters" role="group" aria-label="Kategorie">
                 <button class="filter active" type="button" data-kategorie="Vše">Vše</button>
