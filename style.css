@@ -661,13 +661,3 @@ main {
     .favorite-product-button{width:38px;height:38px;flex-basis:38px}
     .add-button{min-height:38px;padding:0 10px}
 }
-
-/* Gastro model */
-.price{display:flex;flex-direction:column;gap:4px}
-.price small{font-size:.78rem;font-weight:500;opacity:.78}
-.card-qty{display:flex;align-items:center;gap:7px}
-.card-qty button{width:32px;height:32px;border:1px solid #d7e1db;border-radius:8px;background:#fff;font-size:20px;cursor:pointer}
-.card-qty strong{min-width:22px;text-align:center}
-.category-count{font-size:.8em;opacity:.65}
-.cart-line-total{font-size:.78rem;opacity:.72}
-#hodnotaKosiku{font-weight:700;margin-left:4px}
