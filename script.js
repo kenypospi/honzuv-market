@@ -270,7 +270,8 @@ function vytvorFiltry() {
     const kats=kategorieNastaveni.length?kategorieNastaveni:[...new Set(produkty.map(p=>p.kategorie))].map(k=>({kategorie:k,nazev:k,zobrazit:true,poradi:9999}));
     list.innerHTML=kats.map(k=>{
         const subs=podkategorieNastaveni.filter(s=>s.kategorie===k.kategorie);
-        return `<div class="category-group"><button class="category-link" type="button" data-kategorie="${escapeHtml(k.kategorie)}">${escapeHtml(k.nazev)}</button>${subs.length?`<div class="subcategory-list">${subs.map(s=>`<button class="subcategory-link" type="button" data-pod="${escapeHtml(s.kategorie+"||"+s.podkategorie)}">${escapeHtml(s.nazev)}</button>`).join("")}</div>`:""}</div>`;
+        const pocetProduktuKategorie = produkty.filter(p => p.zobrazit !== false && p.kategorie === k.kategorie).length;
+        return `<div class="category-group"><button class="category-link" type="button" data-kategorie="${escapeHtml(k.kategorie)}">${escapeHtml(k.nazev)} <span class="category-count">(${pocetProduktuKategorie})</span></button>${subs.length?`<div class="subcategory-list">${subs.map(s=>`<button class="subcategory-link" type="button" data-pod="${escapeHtml(s.kategorie+"||"+s.podkategorie)}">${escapeHtml(s.nazev)}</button>`).join("")}</div>`:""}</div>`;
     }).join("");
     list.querySelectorAll(".category-link").forEach(b=>b.addEventListener("click",()=>filtrKategorie(b.dataset.kategorie)));
     list.querySelectorAll(".subcategory-link").forEach(b=>b.addEventListener("click",()=>filtrKategorie("__podkategorie__"+b.dataset.pod)));
@@ -302,7 +303,6 @@ function vykresliProdukty() {
         const index = produkty.findIndex(polozka => polozka.id === produkt.id);
         const maCenu = Number.isFinite(cena);
         const vKosiku = kosik.find(x => String(x.id) === String(produkt.id));
-        const jeVKosiku=Boolean(vKosiku);
         obsah.insertAdjacentHTML("beforeend", `
             <article class="card">
                 <img src="Fotky/${encodeURIComponent(produkt.id)}.jpg" alt="${escapeHtml(produkt.nazev)}" class="product-photo" onerror="nahradFotkuSkupiny(this, '${escapeJs(produkt.fotkaSkupiny)}')" loading="lazy">
@@ -319,7 +319,7 @@ function vykresliProdukty() {
                             <small>${maCenu ? `${escapeHtml(produkt.baleni || "balení")} → ${formatCena.format(cena)} Kč/bal.` : ""}</small>
                         </span>
                         <div class="product-actions">
-                            ${jeVKosiku?`<div class="card-qty"><button type="button" onclick="zmenMnozstviZKarty('${escapeJs(produkt.id)}',-1)">−</button><strong>${vKosiku.pocet}</strong><button type="button" onclick="zmenMnozstviZKarty('${escapeJs(produkt.id)}',1)">+</button></div>`:`<button class="add-button" type="button" onclick="pridejDoKosiku(${index})" ${maCenu ? "" : "disabled"}>${maCenu?(poslednePridanyId===String(produkt.id)?"✓ Přidáno":"Přidat"):"Není skladem"}</button>`}
+                            <button class="add-button" type="button" onclick="pridejDoKosiku(${index})" ${maCenu ? "" : "disabled"}>${maCenu ? "Přidat" : "Není skladem"}</button>
                             <button class="favorite-product-button ${jeOblibeny(produkt.id) ? "is-favorite" : ""}" type="button" data-oblibene="${escapeHtml(produkt.id)}" aria-label="${jeOblibeny(produkt.id) ? "Odebrat z oblíbených" : "Přidat do oblíbených"}" title="${jeOblibeny(produkt.id) ? "Odebrat z oblíbených" : "Přidat do oblíbených"}">${jeOblibeny(produkt.id) ? "♥" : "♡"}</button>
                         </div>
                     </div>
@@ -407,26 +407,27 @@ function vytvorNahledBezFotky() {
     return nahled;
 }
 
-let poslednePridanyId = null;
-let poslednePridanyTimer = null;
-function zmenMnozstviZKarty(id, delta) {
-    const p=kosik.find(x=>String(x.id)===String(id));
-    if(!p&&delta>0){const i=produkty.findIndex(x=>String(x.id)===String(id));if(i>=0)pridejDoKosiku(i);return;}
-    if(!p)return;
-    p.pocet=Math.max(0,Number(p.pocet||0)+Number(delta||0));
-    if(p.pocet===0)kosik=kosik.filter(x=>String(x.id)!==String(id));
-    ulozKosik(); vykresliKosik(); vykresliProdukty();
-}
-function pridejOblibenyDoKosiku(id){const i=produkty.findIndex(x=>String(x.id)===String(id));if(i>=0)pridejDoKosiku(i);}
 function pridejDoKosiku(index) {
-    const produkt=produkty[index];
-    if(!produkt||!Number.isFinite(cenaProduktu(produkt.id)))return;
-    const existuje=kosik.find(p=>String(p.id)===String(produkt.id));
-    if(existuje)existuje.pocet+=1;else kosik.push({id:String(produkt.id),pocet:1});
-    poslednePridanyId=String(produkt.id);
-    clearTimeout(poslednePridanyTimer);
-    poslednePridanyTimer=setTimeout(()=>{poslednePridanyId=null;vykresliProdukty();},1200);
-    ulozKosik(); vykresliKosik(); vykresliProdukty();
+    const produkt = produkty[index];
+    if (!produkt || !Number.isFinite(cenaProduktu(produkt.id))) return;
+    const existuje = kosik.find(polozka => polozka.id === produkt.id);
+    if (existuje) existuje.pocet += 1;
+    else kosik.push({ id: produkt.id, pocet: 1 });
+    ulozKosik();
+    vykresliKosik();
+
+    const tlacitko = document.querySelector(`.add-button[onclick="pridejDoKosiku(${index})"]`);
+    if (tlacitko) {
+        const puvodniText = tlacitko.textContent;
+        tlacitko.textContent = "✓ Přidáno";
+        tlacitko.classList.add("added");
+        setTimeout(() => {
+            if (tlacitko.isConnected) {
+                tlacitko.textContent = puvodniText;
+                tlacitko.classList.remove("added");
+            }
+        }, 1000);
+    }
 }
 
 function vykresliKosik() {
@@ -449,9 +450,10 @@ function vykresliKosik() {
     polozky.forEach(({ produkt, pocet: mnozstvi, index, cena }) => {
         obsahKosiku.insertAdjacentHTML("beforeend", `
             <div class="cart-item">
-                <div><strong>${escapeHtml(produkt.nazev)}</strong><small>ID ${escapeHtml(produkt.id)} · ${escapeHtml(produkt.baleni)}</small></div>
+                <div><strong>${escapeHtml(produkt.nazev)}</strong><small>${escapeHtml(produkt.baleni)} · ${formatCena.format(cena / koeficientBaleni(produkt.baleni))} Kč/kg</small></div>
                 <div>
-                    <strong>${formatCena.format(cena * mnozstvi)}</strong>
+                    <strong>${formatCena.format(cena)} Kč/bal.</strong>
+                    <small class="cart-line-total">${formatCena.format(cena * mnozstvi)} celkem</small>
                     <div class="cart-controls">
                         <button type="button" onclick="uberProdukt(${index})" aria-label="Odebrat">−</button>
                         <span>${mnozstvi} bal.</span>
@@ -494,7 +496,7 @@ function odeslatWhatsApp() {
     const doprava = zpusobDopravy === "doprava" ? cenaDopravy : 0;
     const zprava = [
         "Dobrý den,", "", "objednávám:", "",
-        ...polozky.map(({ produkt, pocet, cena }) => `${pocet}× balení ${produkt.nazev} (${produkt.baleni}, ID: ${produkt.id}) – ${formatCena.format(cena * pocet)}`),
+        ...polozky.map(({ produkt, pocet, cena }) => `${produkt.nazev}\n${pocet}× ${produkt.baleni}\n${formatCena.format(cena)} Kč/bal. · ${formatCena.format(cena / koeficientBaleni(produkt.baleni))} Kč/kg\nCelkem: ${formatCena.format(cena * pocet)}`),
         "", "--------------------", `Mezisoučet: ${formatCena.format(mezisoucet)}`,
         `Předání: ${zpusobDopravy === "doprava" ? `Doprava ${formatCena.format(doprava)}` : "Osobní odběr"}`,
         ...(zpusobDopravy === "doprava" ? [`Dodací adresa: ${adresa}`] : []),
