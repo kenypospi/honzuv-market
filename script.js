@@ -301,11 +301,12 @@ function vykresliProdukty() {
         const cena = cenaProduktu(produkt.id);
         const index = produkty.findIndex(polozka => polozka.id === produkt.id);
         const maCenu = Number.isFinite(cena);
+        const vKosiku = kosik.find(x => String(x.id) === String(produkt.id));
         obsah.insertAdjacentHTML("beforeend", `
             <article class="card">
                 <img src="Fotky/${encodeURIComponent(produkt.id)}.jpg" alt="${escapeHtml(produkt.nazev)}" class="product-photo" onerror="nahradFotkuSkupiny(this, '${escapeJs(produkt.fotkaSkupiny)}')" loading="lazy">
                 <div class="card-body">
-                    <div class="product-meta">
+                    ${produkt.akce ? `<span class="akce-badge">AKCE</span>` : ""}<div class="product-meta">
                         <span class="tag">${escapeHtml(zobrazNazevKategorie(produkt.kategorie))}</span>
                         <span>ID ${escapeHtml(produkt.id)}</span>
                     </div>
