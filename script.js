@@ -496,7 +496,7 @@ function polozkyKosiku() {
 function koeficientBaleni(baleni) {
     const text = String(baleni || "").toLocaleLowerCase("cs-CZ").replace(",", ".");
     // Např. "1 x 5 kg" = 5 kg, "1 x 800 g" = 0,8 kg.
-    const m = text.match(/(?:^|\\s)(\\d+(?:\\.\\d+)?)\\s*x\\s*(\\d+(?:\\.\\d+)?)\\s*(kg|g)\\b/);
+    const m = text.match(/(?:^|\s)(\d+(?:\.\d+)?)\s*x\s*(\d+(?:\.\d+)?)\s*(kg|g)\b/);
     if (m) {
         const pocet = Number(m[1]);
         const hmotnost = Number(m[2]);
@@ -504,7 +504,7 @@ function koeficientBaleni(baleni) {
         return pocet * kg;
     }
     // Pokud je balení uvedené jen jako "5 kg" nebo "800 g".
-    const solo = text.match(/(^|\\s)(\\d+(?:\\.\\d+)?)\\s*(kg|g)\\b/);
+    const solo = text.match(/(^|\s)(\d+(?:\.\d+)?)\s*(kg|g)\b/);
     if (solo) {
         const hmotnost = Number(solo[2]);
         return solo[3] === "g" ? hmotnost / 1000 : hmotnost;
@@ -513,6 +513,7 @@ function koeficientBaleni(baleni) {
     return 1;
 }
 
+// Cena v Google tabulce je cena za 1 kg. Web ji převádí na cenu celého balení.
 function cenaProduktu(id) {
     const hodnota = ceny[String(id)];
     const cenaZaKg = typeof hodnota === "number" ? hodnota : Number(hodnota?.cena);
