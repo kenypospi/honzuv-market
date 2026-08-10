@@ -297,6 +297,7 @@ function vykresliProdukty() {
         const maCenu = Number.isFinite(cena);
         obsah.insertAdjacentHTML("beforeend", `
             <article class="card">
+                <button class="favorite-btn ${jeOblibeny(produkt.id) ? "is-favorite" : ""}" type="button" data-oblibene="${escapeHtml(produkt.id)}" aria-label="${jeOblibeny(produkt.id) ? "Odebrat z oblíbených" : "Přidat do oblíbených"}">${jeOblibeny(produkt.id) ? "♥" : "♡"}</button>
                 <img src="Fotky/${encodeURIComponent(produkt.id)}.jpg" alt="${escapeHtml(produkt.nazev)}" class="product-photo" onerror="nahradFotkuSkupiny(this, '${escapeJs(produkt.fotkaSkupiny)}')" loading="lazy">
                 <div class="card-body">
                     <div class="product-meta">
