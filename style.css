@@ -661,3 +661,11 @@ main {
     .favorite-product-button{width:38px;height:38px;flex-basis:38px}
     .add-button{min-height:38px;padding:0 10px}
 }
+.category-link, .subcategory-link { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: .75rem; }
+.category-link strong, .subcategory-link strong { font-size: .78rem; opacity: .7; }
+.sale-tag { background: #dc2626 !important; color: #fff !important; }
+.card-quantity { display: inline-flex; align-items: center; gap: .7rem; padding: .3rem; border: 1px solid #d9ded8; border-radius: 999px; background: #fff; }
+.card-quantity button { width: 2.1rem; height: 2.1rem; border: 0; border-radius: 50%; background: #eef4ef; color: #173d25; font-size: 1.2rem; cursor: pointer; }
+.card-quantity strong { min-width: 1.2rem; text-align: center; }
+.cart-item small { display: block; margin-top: .2rem; }
+.cart-button #kosikHodnota { font-weight: 700; }

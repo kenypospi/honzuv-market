@@ -22,7 +22,7 @@ let dodaciAdresa = "";
 const formatCena = new Intl.NumberFormat("cs-CZ", {
     style: "currency",
     currency: "CZK",
-    minimumFractionDigits: 0,
+    minimumFractionDigits: 2,
     maximumFractionDigits: 2
 });
 
@@ -36,6 +36,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         ceny = data.ceny;
         kategorieNastaveni = data.kategorie;
         nastaveni = data.nastaveni;
+        sekceNastaveni = data.sekce;
+        podkategorieNastaveni = data.podkategorie;
         synchronizujKosik();
         vytvorFiltry();
         vykresliProdukty();
@@ -54,10 +56,10 @@ let podkategorieNastaveni = [];
 async function nactiData() {
     const [produktyCsv, kategorieCsv, nastaveniCsv, sekceCsv, podkategorieCsv] = await Promise.all([
         nactiCsv(window.HONZUV_MARKET_PRODUKTY_CSV_URL),
-        nactiCsv(window.HONZUV_MARKET_KATEGORIE_CSV_URL),
-        nactiCsv(window.HONZUV_MARKET_NASTAVENI_CSV_URL),
-        nactiCsv(window.HONZUV_MARKET_SEKCE_CSV_URL),
-        nactiCsv(window.HONZUV_MARKET_PODKATEGORIE_CSV_URL)
+        nactiCsvVolitelne(window.HONZUV_MARKET_KATEGORIE_CSV_URL, "Kategorie"),
+        nactiCsvVolitelne(window.HONZUV_MARKET_NASTAVENI_CSV_URL, "Nastavení"),
+        nactiCsvVolitelne(window.HONZUV_MARKET_SEKCE_CSV_URL, "Sekce"),
+        nactiCsvVolitelne(window.HONZUV_MARKET_PODKATEGORIE_CSV_URL, "Podkategorie")
     ]);
 
     const zakladniKatalog = Array.isArray(window.HONZUV_MARKET_KATALOG)
@@ -93,6 +95,13 @@ async function nactiData() {
     }]));
     return {produkty:[...produktyMap.values()], ceny:cenyFinal, kategorie, nastaveni:nastaveniData, sekce, podkategorie};
 }
+async function nactiCsvVolitelne(url, nazev) {
+    try { return await nactiCsv(url); }
+    catch (error) {
+        console.warn(`${nazev}: volitelný Google list se nepodařilo načíst.`, error);
+        return [];
+    }
+}
 async function nactiCsv(url) {
     const adresa = String(url || "").trim();
     if (!adresa) return [];
@@ -111,7 +120,10 @@ function produktyZCsv(rows) {
     // V Honzově Marketu je cena v Google tabulce vždy ZA 1 KG.
     // Bereme proto přednostně sloupec "Cena za kg"; pokud má tabulka
     // obecný název "Cena", používáme ho také jako cenu za kg.
-    const indexCenyKg = najdiSloupec(hlavicka, ["cena za kg", "cena kg", "cena"]);
+    // Publikovaná Honzova tabulka historicky používá název „Cena za balení (Kč)",
+    // ale hodnoty v tomto sloupci jsou podle používaného gastro modelu ceny za kg.
+    // Přijímáme starý i nový název, aby změna hlavičky nikdy neshodila katalog.
+    const indexCenyKg = najdiSloupec(hlavicka, ["cena za kg", "cena kg", "cena", "cena za baleni kc", "cena za baleni"]);
     const indexAkce = najdiSloupec(hlavicka, ["akcni produkt ano ne", "akcni produkt", "akce"]);
     const indexVyprodej = najdiSloupec(hlavicka, ["vyprodej ano ne", "vyprodej"]);
     const indexViditelnosti = najdiSloupec(hlavicka, ["zobrazit na webu ano ne", "zobrazit na webu", "zobrazit"]);
@@ -121,7 +133,7 @@ function produktyZCsv(rows) {
     const indexDoporucujeme = najdiSloupec(hlavicka, ["doporucujeme"]);
 
     if (indexKodu === -1 || indexCenyKg === -1) {
-        throw new Error("Google tabulka Ceny musí obsahovat Kód produktu a cenu za 1 kg.");
+        throw new Error(`Google tabulka produktů nemá rozpoznaný sloupec ceny. Nalezené sloupce: ${hlavicka.join(", ")}`);
     }
 
     return rows.slice(1).map(row => ({
@@ -270,7 +282,8 @@ function vytvorFiltry() {
     const kats=kategorieNastaveni.length?kategorieNastaveni:[...new Set(produkty.map(p=>p.kategorie))].map(k=>({kategorie:k,nazev:k,zobrazit:true,poradi:9999}));
     list.innerHTML=kats.map(k=>{
         const subs=podkategorieNastaveni.filter(s=>s.kategorie===k.kategorie);
-        return `<div class="category-group"><button class="category-link" type="button" data-kategorie="${escapeHtml(k.kategorie)}">${escapeHtml(k.nazev)}</button>${subs.length?`<div class="subcategory-list">${subs.map(s=>`<button class="subcategory-link" type="button" data-pod="${escapeHtml(s.kategorie+"||"+s.podkategorie)}">${escapeHtml(s.nazev)}</button>`).join("")}</div>`:""}</div>`;
+        const pocet=produkty.filter(p=>p.kategorie===k.kategorie&&jeProduktViditelny(p.id)).length;
+        return `<div class="category-group"><button class="category-link" type="button" data-kategorie="${escapeHtml(k.kategorie)}"><span>${escapeHtml(k.nazev)}</span><strong>${pocet}</strong></button>${subs.length?`<div class="subcategory-list">${subs.map(s=>{const n=produkty.filter(p=>p.kategorie===s.kategorie&&p.podkategorie===s.podkategorie&&jeProduktViditelny(p.id)).length;return `<button class="subcategory-link" type="button" data-pod="${escapeHtml(s.kategorie+"||"+s.podkategorie)}"><span>${escapeHtml(s.nazev)}</span><strong>${n}</strong></button>`;}).join("")}</div>`:""}</div>`;
     }).join("");
     list.querySelectorAll(".category-link").forEach(b=>b.addEventListener("click",()=>filtrKategorie(b.dataset.kategorie)));
     list.querySelectorAll(".subcategory-link").forEach(b=>b.addEventListener("click",()=>filtrKategorie("__podkategorie__"+b.dataset.pod)));
@@ -299,25 +312,28 @@ function vykresliProdukty() {
 
     zobrazeno.forEach(produkt => {
         const cena = cenaProduktu(produkt.id);
+        const cenaKg = cenaZaKgProduktu(produkt.id);
         const index = produkty.findIndex(polozka => polozka.id === produkt.id);
         const maCenu = Number.isFinite(cena);
+        const pocetVKosiku = mnozstviProduktuVKosiku(produkt.id);
         obsah.insertAdjacentHTML("beforeend", `
             <article class="card">
                 <img src="Fotky/${encodeURIComponent(produkt.id)}.jpg" alt="${escapeHtml(produkt.nazev)}" class="product-photo" onerror="nahradFotkuSkupiny(this, '${escapeJs(produkt.fotkaSkupiny)}')" loading="lazy">
                 <div class="card-body">
                     <div class="product-meta">
                         <span class="tag">${escapeHtml(zobrazNazevKategorie(produkt.kategorie))}</span>
+                        ${jeAkcni(produkt.id) ? '<span class="tag sale-tag">AKCE</span>' : ''}
                         <span>ID ${escapeHtml(produkt.id)}</span>
                     </div>
                     <h2>${escapeHtml(produkt.nazev)}</h2>
                     <p class="product-description">Balení: ${escapeHtml(produkt.baleni)}${produkt.podkategorie ? ` · ${escapeHtml(produkt.podkategorie)}` : ""}</p>
                     <div class="price-row">
                         <span class="price ${maCenu ? "" : "price-unavailable"}">
-                            ${maCenu ? formatCena.format(cena) : "Cena bude doplněna"}
-                            <small>${maCenu ? `za celé balení · ${formatCena.format(cena / koeficientBaleni(produkt.baleni))}/kg` : ""}</small>
+                            ${maCenu ? `${formatCena.format(cenaKg)}/kg` : "Cena bude doplněna"}
+                            <small>${maCenu ? `${escapeHtml(produkt.baleni)} → ${formatCena.format(cena)}/bal.` : ""}</small>
                         </span>
                         <div class="product-actions">
-                            <button class="add-button" type="button" onclick="pridejDoKosiku(${index})" ${maCenu ? "" : "disabled"}>${maCenu ? "Přidat" : "Není skladem"}</button>
+                            ${pocetVKosiku > 0 ? `<div class="card-quantity" aria-label="Množství v košíku"><button type="button" onclick="zmenMnozstviProduktu('${escapeJs(produkt.id)}',-1)">−</button><strong>${pocetVKosiku}</strong><button type="button" onclick="zmenMnozstviProduktu('${escapeJs(produkt.id)}',1)">+</button></div>` : `<button class="add-button" type="button" onclick="pridejDoKosiku(${index}, this)" ${maCenu ? "" : "disabled"}>${maCenu ? "Přidat" : "Není skladem"}</button>`}
                             <button class="favorite-product-button ${jeOblibeny(produkt.id) ? "is-favorite" : ""}" type="button" data-oblibene="${escapeHtml(produkt.id)}" aria-label="${jeOblibeny(produkt.id) ? "Odebrat z oblíbených" : "Přidat do oblíbených"}" title="${jeOblibeny(produkt.id) ? "Odebrat z oblíbených" : "Přidat do oblíbených"}">${jeOblibeny(produkt.id) ? "♥" : "♡"}</button>
                         </div>
                     </div>
@@ -405,7 +421,7 @@ function vytvorNahledBezFotky() {
     return nahled;
 }
 
-function pridejDoKosiku(index) {
+function pridejDoKosiku(index, tlacitko) {
     const produkt = produkty[index];
     if (!produkt || !Number.isFinite(cenaProduktu(produkt.id))) return;
     const existuje = kosik.find(polozka => polozka.id === produkt.id);
@@ -413,6 +429,27 @@ function pridejDoKosiku(index) {
     else kosik.push({ id: produkt.id, pocet: 1 });
     ulozKosik();
     vykresliKosik();
+    if (tlacitko) {
+        tlacitko.textContent = "✓ Přidáno";
+        tlacitko.disabled = true;
+        setTimeout(vykresliProdukty, 450);
+    } else {
+        vykresliProdukty();
+    }
+}
+
+function mnozstviProduktuVKosiku(id) {
+    return kosik.find(polozka => polozka.id === String(id))?.pocet || 0;
+}
+
+function zmenMnozstviProduktu(id, rozdil) {
+    const polozka = kosik.find(p => p.id === String(id));
+    if (!polozka && rozdil > 0) kosik.push({ id: String(id), pocet: 1 });
+    else if (polozka) polozka.pocet += rozdil;
+    kosik = kosik.filter(p => p.pocet > 0);
+    ulozKosik();
+    vykresliKosik();
+    vykresliProdukty();
 }
 
 function vykresliKosik() {
@@ -420,6 +457,8 @@ function vykresliKosik() {
     const polozky = polozkyKosiku();
     const pocet = polozky.reduce((soucet, polozka) => soucet + polozka.pocet, 0);
     document.getElementById("pocetKosik").textContent = pocet;
+    const hodnotaKosiku = polozky.reduce((soucet, polozka) => soucet + polozka.cena * polozka.pocet, 0);
+    document.getElementById("kosikHodnota").textContent = formatCena.format(hodnotaKosiku);
 
     const vstupAdresy = document.getElementById("dodaciAdresa");
     if (vstupAdresy) dodaciAdresa = vstupAdresy.value;
@@ -435,7 +474,7 @@ function vykresliKosik() {
     polozky.forEach(({ produkt, pocet: mnozstvi, index, cena }) => {
         obsahKosiku.insertAdjacentHTML("beforeend", `
             <div class="cart-item">
-                <div><strong>${escapeHtml(produkt.nazev)}</strong><small>ID ${escapeHtml(produkt.id)} · ${escapeHtml(produkt.baleni)}</small></div>
+                <div><strong>${escapeHtml(produkt.nazev)}</strong><small>${escapeHtml(produkt.baleni)} · ${formatCena.format(cenaZaKgProduktu(produkt.id))}/kg</small><small>${formatCena.format(cena)} / bal.</small></div>
                 <div>
                     <strong>${formatCena.format(cena * mnozstvi)}</strong>
                     <div class="cart-controls">
@@ -462,9 +501,9 @@ function vykresliKosik() {
 }
 
 function ulozDodaciAdresu(adresa) { dodaciAdresa = adresa; }
-function uberProdukt(index) { if (kosik[index].pocet > 1) kosik[index].pocet -= 1; else kosik.splice(index, 1); ulozKosik(); vykresliKosik(); }
-function pridejKus(index) { kosik[index].pocet += 1; ulozKosik(); vykresliKosik(); }
-function vyprazdniKosik() { kosik = []; ulozKosik(); vykresliKosik(); }
+function uberProdukt(index) { if (kosik[index].pocet > 1) kosik[index].pocet -= 1; else kosik.splice(index, 1); ulozKosik(); vykresliKosik(); vykresliProdukty(); }
+function pridejKus(index) { kosik[index].pocet += 1; ulozKosik(); vykresliKosik(); vykresliProdukty(); }
+function vyprazdniKosik() { kosik = []; ulozKosik(); vykresliKosik(); vykresliProdukty(); }
 function nastavZpusobDopravy(hodnota) { zpusobDopravy = hodnota === "doprava" ? "doprava" : "osobni"; localStorage.setItem("honzuvMarketDoprava", zpusobDopravy); vykresliKosik(); }
 function zobrazKosik() { document.getElementById("prekryvKosiku").hidden = false; document.getElementById("oknoKosiku").hidden = false; }
 function zavriKosik() { document.getElementById("prekryvKosiku").hidden = true; document.getElementById("oknoKosiku").hidden = true; }
@@ -480,7 +519,14 @@ function odeslatWhatsApp() {
     const doprava = zpusobDopravy === "doprava" ? cenaDopravy : 0;
     const zprava = [
         "Dobrý den,", "", "objednávám:", "",
-        ...polozky.map(({ produkt, pocet, cena }) => `${pocet}× balení ${produkt.nazev} (${produkt.baleni}, ID: ${produkt.id}) – ${formatCena.format(cena * pocet)}`),
+        ...polozky.flatMap(({ produkt, pocet, cena }) => [
+            `${produkt.nazev} (ID: ${produkt.id})`,
+            `${pocet} bal. · ${produkt.baleni}`,
+            `${formatCena.format(cena)} / bal.`,
+            `${formatCena.format(cenaZaKgProduktu(produkt.id))} / kg`,
+            `Celkem položka: ${formatCena.format(cena * pocet)}`,
+            ""
+        ]),
         "", "--------------------", `Mezisoučet: ${formatCena.format(mezisoucet)}`,
         `Předání: ${zpusobDopravy === "doprava" ? `Doprava ${formatCena.format(doprava)}` : "Osobní odběr"}`,
         ...(zpusobDopravy === "doprava" ? [`Dodací adresa: ${adresa}`] : []),
@@ -504,7 +550,7 @@ function koeficientBaleni(baleni) {
         .trim();
 
     // "1 x 5 kg", "2 x 2.5 kg", "1 x 800 g"
-    const nasobene = text.match(/(\d+(?:\.\d+)?)\s*x\s*(\d+(?:\.\d+)?)\s*(kg|g)\b/);
+    const nasobene = text.match(/(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)\s*(kg|g)\b/);
     if (nasobene) {
         const pocet = Number(nasobene[1]);
         const hmotnost = Number(nasobene[2]);
@@ -533,6 +579,12 @@ function cenaProduktu(id) {
     const produkt = produkty.find(p => p.id === String(id));
     const kgVBaleni = koeficientBaleni(produkt?.baleni);
     return cenaZaKg * kgVBaleni;
+}
+
+function cenaZaKgProduktu(id) {
+    const hodnota = ceny[String(id)];
+    const cenaZaKg = typeof hodnota === "number" ? hodnota : Number(hodnota?.cena);
+    return Number.isFinite(cenaZaKg) ? cenaZaKg : NaN;
 }
 
 function maPriznak(id,klic){const h=ceny[String(id)];return typeof h==="object"&&h?.[klic]===true&&Number.isFinite(cenaProduktu(id));}
