@@ -55,7 +55,7 @@ let podkategorieNastaveni = [];
 
 async function nactiData() {
     const [produktyCsv, kategorieCsv, nastaveniCsv, sekceCsv, podkategorieCsv] = await Promise.all([
-        nactiCsv(window.HONZUV_MARKET_PRODUKTY_CSV_URL),
+        nactiCsvVolitelne(window.HONZUV_MARKET_PRODUKTY_CSV_URL, "Produkty a ceny"),
         nactiCsvVolitelne(window.HONZUV_MARKET_KATEGORIE_CSV_URL, "Kategorie"),
         nactiCsvVolitelne(window.HONZUV_MARKET_NASTAVENI_CSV_URL, "Nastavení"),
         nactiCsvVolitelne(window.HONZUV_MARKET_SEKCE_CSV_URL, "Sekce"),
@@ -74,7 +74,9 @@ async function nactiData() {
     const nastaveniData = nastaveniZCsv(nastaveniCsv);
     const sekce = sekceZCsv(sekceCsv);
     const podkategorie = podkategorieZCsv(podkategorieCsv);
-    const produktyData = produktyZCsv(produktyCsv);
+    let produktyData = [];
+    try { produktyData = produktyZCsv(produktyCsv); }
+    catch (error) { console.error("Produkty a ceny: CSV se nepodařilo zpracovat.", error); }
 
     const produktyMap = new Map(zakladniKatalog.map(p => [String(p.id), { ...p }]));
     for (const p of produktyData) {
@@ -89,10 +91,10 @@ async function nactiData() {
         });
     }
 
-    const cenyFinal = Object.fromEntries(produktyData.map(p => [String(p.id), {
+    const cenyFinal = produktyData.length ? Object.fromEntries(produktyData.map(p => [String(p.id), {
         cena:p.cena, akce:p.akce, vyprodej:p.vyprodej, zobrazit:p.zobrazit,
         nejprodavanejsi:p.nejprodavanejsi, novinka:p.novinka, doporucujeme:p.doporucujeme
-    }]));
+    }])) : { ...(window.HONZUV_MARKET_CENY || {}) };
     return {produkty:[...produktyMap.values()], ceny:cenyFinal, kategorie, nastaveni:nastaveniData, sekce, podkategorie};
 }
 async function nactiCsvVolitelne(url, nazev) {
@@ -105,9 +107,21 @@ async function nactiCsvVolitelne(url, nazev) {
 async function nactiCsv(url) {
     const adresa = String(url || "").trim();
     if (!adresa) return [];
-    const response = await fetch(adresa, { cache: "no-store" });
-    if (!response.ok) throw new Error("Google Tabulka není dostupná.");
-    return rozdelCsv(await response.text());
+    const oddelovac = adresa.includes("?") ? "&" : "?";
+    const pokusy = [`${adresa}${oddelovac}_=${Date.now()}`];
+    const shoda = adresa.match(/^(https:\/\/docs\.google\.com\/spreadsheets\/d\/e\/[^/]+)\/pub\?.*gid=(\d+)/);
+    if (shoda) pokusy.push(`${shoda[1]}/pub?output=csv&single=true&gid=${shoda[2]}&_=${Date.now()}`);
+    let posledniChyba;
+    for (const pokus of pokusy) {
+        try {
+            const response = await fetch(pokus, { cache: "no-store", mode: "cors", redirect: "follow" });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const text = await response.text();
+            if (!text.trim()) throw new Error("Google vrátil prázdný soubor");
+            return rozdelCsv(text.replace(/^\uFEFF/, ""));
+        } catch (error) { posledniChyba = error; }
+    }
+    throw new Error(`Google Tabulka není dostupná: ${posledniChyba?.message || "neznámá chyba"}`);
 }
 
 function produktyZCsv(rows) {
@@ -281,7 +295,10 @@ function vytvorFiltry() {
     const list=document.getElementById("seznamKategorii");
     const kats=kategorieNastaveni.length?kategorieNastaveni:[...new Set(produkty.map(p=>p.kategorie))].map(k=>({kategorie:k,nazev:k,zobrazit:true,poradi:9999}));
     list.innerHTML=kats.map(k=>{
-        const subs=podkategorieNastaveni.filter(s=>s.kategorie===k.kategorie);
+        // U Masa zobrazujeme pouze hlavní skupinu, bez Kuřecí/Vepřové/Hovězí atd.
+        const subs=k.kategorie === "Maso"
+            ? []
+            : podkategorieNastaveni.filter(s=>s.kategorie===k.kategorie);
         const pocet=produkty.filter(p=>p.kategorie===k.kategorie&&jeProduktViditelny(p.id)).length;
         return `<div class="category-group"><button class="category-link" type="button" data-kategorie="${escapeHtml(k.kategorie)}"><span>${escapeHtml(k.nazev)}</span><strong>${pocet}</strong></button>${subs.length?`<div class="subcategory-list">${subs.map(s=>{const n=produkty.filter(p=>p.kategorie===s.kategorie&&p.podkategorie===s.podkategorie&&jeProduktViditelny(p.id)).length;return `<button class="subcategory-link" type="button" data-pod="${escapeHtml(s.kategorie+"||"+s.podkategorie)}"><span>${escapeHtml(s.nazev)}</span><strong>${n}</strong></button>`;}).join("")}</div>`:""}</div>`;
     }).join("");
