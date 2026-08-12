@@ -82,7 +82,17 @@ async function nactiData() {
     for (const p of produktyData) {
         const id = String(p.id);
         const zakladni = produktyMap.get(id);
-        if (!zakladni) continue;
+        if (!zakladni) {
+            produktyMap.set(id, {
+                id,
+                nazev: p.nazev || `Produkt ${id}`,
+                baleni: p.baleni || "dle balení",
+                kategorie: p.kategorie || "Ostatní potraviny",
+                podkategorie: p.podkategorie || "",
+                fotkaSkupiny: ""
+            });
+            continue;
+        }
         produktyMap.set(id, { ...zakladni,
             nazev: p.nazev || zakladni.nazev,
             baleni: p.baleni || zakladni.baleni,
