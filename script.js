@@ -303,7 +303,12 @@ function vytvorFiltry() {
     filtry.querySelectorAll(".filter").forEach(b=>b.addEventListener("click",()=>filtrKategorie(b.dataset.kategorie)));
 
     const list=document.getElementById("seznamKategorii");
-    const kats=kategorieNastaveni.length?kategorieNastaveni:[...new Set(produkty.map(p=>p.kategorie))].map(k=>({kategorie:k,nazev:k,zobrazit:true,poradi:9999}));
+    const zdrojKategorii=kategorieNastaveni.length?kategorieNastaveni:[...new Set(produkty.map(p=>p.kategorie))].map(k=>({kategorie:k,nazev:k,zobrazit:true,poradi:9999}));
+    const poradiMrazenych=Number(zdrojKategorii.find(k=>k.kategorie==="Mražené výrobky")?.poradi)||4;
+    const kats=zdrojKategorii.slice().sort((a,b)=>{
+        const poradiKategorie = k => k.kategorie === "Zmrzliny" ? poradiMrazenych + 0.1 : Number(k.poradi) || 9999;
+        return poradiKategorie(a)-poradiKategorie(b);
+    });
     list.innerHTML=kats.map(k=>{
         // U Masa zobrazujeme pouze hlavní skupinu, bez Kuřecí/Vepřové/Hovězí atd.
         const subs=k.kategorie === "Maso"

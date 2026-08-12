@@ -677,6 +677,26 @@ main {
 .cart-item small { display: block; margin-top: .2rem; }
 .cart-button #kosikHodnota { font-weight: 700; }
 
+/* Kategorie zůstávají dostupné i na menší obrazovce. */
+.category-sidebar { max-height: calc(100vh - 150px); overflow-y: auto; }
+
+/* Celý výrazný štítek AKCE přes fotografii, bez zkracování na AK… */
+.card { position: relative; }
+.card .sale-tag {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 3;
+    max-width: none !important;
+    padding: 7px 11px;
+    overflow: visible !important;
+    box-shadow: 0 5px 14px rgba(120, 10, 10, .25);
+    color: #fff !important;
+    font-size: 12px;
+    letter-spacing: .04em;
+    white-space: nowrap !important;
+}
+
 /* V4 – čisté produktové karty bez překrývání ceny a tlačítek */
 .card {
     display: flex;
@@ -1126,7 +1146,12 @@ function vytvorFiltry() {
     filtry.querySelectorAll(".filter").forEach(b=>b.addEventListener("click",()=>filtrKategorie(b.dataset.kategorie)));
 
     const list=document.getElementById("seznamKategorii");
-    const kats=kategorieNastaveni.length?kategorieNastaveni:[...new Set(produkty.map(p=>p.kategorie))].map(k=>({kategorie:k,nazev:k,zobrazit:true,poradi:9999}));
+    const zdrojKategorii=kategorieNastaveni.length?kategorieNastaveni:[...new Set(produkty.map(p=>p.kategorie))].map(k=>({kategorie:k,nazev:k,zobrazit:true,poradi:9999}));
+    const poradiMrazenych=Number(zdrojKategorii.find(k=>k.kategorie==="Mražené výrobky")?.poradi)||4;
+    const kats=zdrojKategorii.slice().sort((a,b)=>{
+        const poradiKategorie = k => k.kategorie === "Zmrzliny" ? poradiMrazenych + 0.1 : Number(k.poradi) || 9999;
+        return poradiKategorie(a)-poradiKategorie(b);
+    });
     list.innerHTML=kats.map(k=>{
         // U kategorie Maso zobrazujeme jen hlavní skupinu bez podkategorií
         // (Kuřecí, Vepřové, Hovězí atd.). Produkty i jejich data zůstávají beze změny.
