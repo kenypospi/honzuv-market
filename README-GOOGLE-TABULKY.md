@@ -18,4 +18,4 @@ Do listu `Produkty a ceny` přidejte sloupec `Prodejní jednotka`. Povolené hod
 - `kg`: cena je za 1 kg a web ji automaticky násobí hmotností celého balení (např. 179,90 Kč/kg × 5 kg = 899,50 Kč za balení).
 - `ks`, `bal.`, `karton`: cena je konečná cena za uvedenou prodejní jednotku a hmotnost z textu balení ji nijak nemění.
 
-Pokud sloupec nebo hodnota chybí, web kvůli zpětné kompatibilitě použije `kg`.
+Pokud sloupec nebo hodnota chybí, web jednotku bezpečně odvodí z balení: `kg`/`g` a „dle váhy“ zůstanou váhové, `l`/`ml`/`ks` se prodávají jako `ks` a ostatní jako `bal.`. Hodnota z tabulky má vždy přednost.

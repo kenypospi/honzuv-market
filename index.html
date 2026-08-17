@@ -1010,7 +1010,9 @@ function produktyZCsv(rows) {
         kategorie: indexKategorie >= 0 ? String(row[indexKategorie] || "").trim() : "",
         podkategorie: indexPodkategorie >= 0 ? String(row[indexPodkategorie] || "").trim() : "",
         cena: prevedCenu(row[indexCenyKg]),
-        prodejniJednotka: normalizujProdejniJednotku(indexProdejniJednotky >= 0 ? row[indexProdejniJednotky] : "kg"),
+        prodejniJednotka: indexProdejniJednotky >= 0 && String(row[indexProdejniJednotky] || "").trim()
+            ? normalizujProdejniJednotku(row[indexProdejniJednotky])
+            : "",
         akce: indexAkce >= 0 && /^(ano|yes|1|true)$/i.test(String(row[indexAkce] || "").trim()),
         vyprodej: indexVyprodej >= 0 && /^(ano|yes|1|true)$/i.test(String(row[indexVyprodej] || "").trim()),
         zobrazit: indexViditelnosti < 0 || !/^(ne|no|0|false)$/i.test(String(row[indexViditelnosti] || "").trim()),
@@ -1458,7 +1460,15 @@ function normalizujProdejniJednotku(hodnota) {
 
 function prodejniJednotkaProduktu(id) {
     const hodnota = ceny[String(id)];
-    return normalizujProdejniJednotku(typeof hodnota === "object" ? hodnota?.prodejniJednotka : "kg");
+    const zadanaJednotka = typeof hodnota === "object" ? String(hodnota?.prodejniJednotka || "").trim() : "";
+    if (zadanaJednotka) return normalizujProdejniJednotku(zadanaJednotka);
+
+    const produkt = produkty.find(p => p.id === String(id));
+    const baleni = normalizujText(produkt?.baleni || "");
+    if (/\b(kg|g)\b/.test(baleni) || baleni.includes("dle vahy")) return "kg";
+    if (baleni.includes("karton")) return "karton";
+    if (/\b(ks|l|ml)\b/.test(baleni)) return "ks";
+    return "bal.";
 }
 
 function jednotkaMnozstviProduktu(id) {
