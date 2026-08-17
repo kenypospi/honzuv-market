@@ -54,12 +54,13 @@ let sekceNastaveni = [];
 let podkategorieNastaveni = [];
 
 async function nactiData() {
-    const [produktyCsv, kategorieCsv, nastaveniCsv, sekceCsv, podkategorieCsv] = await Promise.all([
+    const [produktyCsv, kategorieCsv, nastaveniCsv, sekceCsv, podkategorieCsv, lokalniCeny] = await Promise.all([
         nactiCsvVolitelne(window.HONZUV_MARKET_PRODUKTY_CSV_URL, "Produkty a ceny"),
         nactiCsvVolitelne(window.HONZUV_MARKET_KATEGORIE_CSV_URL, "Kategorie"),
         nactiCsvVolitelne(window.HONZUV_MARKET_NASTAVENI_CSV_URL, "Nastavení"),
         nactiCsvVolitelne(window.HONZUV_MARKET_SEKCE_CSV_URL, "Sekce"),
-        nactiCsvVolitelne(window.HONZUV_MARKET_PODKATEGORIE_CSV_URL, "Podkategorie")
+        nactiCsvVolitelne(window.HONZUV_MARKET_PODKATEGORIE_CSV_URL, "Podkategorie"),
+        fetch("ceny.json", { cache: "no-store" }).then(response => response.ok ? response.json() : {})
     ]);
 
     const zakladniKatalog = Array.isArray(window.HONZUV_MARKET_KATALOG)
@@ -77,7 +78,6 @@ async function nactiData() {
     let produktyData = [];
     try { produktyData = produktyZCsv(produktyCsv); }
     catch (error) { console.error("Produkty a ceny: CSV se nepodařilo zpracovat.", error); }
-    if (!produktyData.length) throw new Error("Aktuální list Ceny z Google tabulky není dostupný.");
 
     const produktyMap = new Map(zakladniKatalog.map(p => [String(p.id), { ...p }]));
     for (const p of produktyData) {
@@ -102,10 +102,11 @@ async function nactiData() {
         });
     }
 
-    const cenyFinal = Object.fromEntries(produktyData.map(p => [String(p.id), {
+    const cenyZCsv = produktyData.length ? Object.fromEntries(produktyData.map(p => [String(p.id), {
         cena:p.cena, akce:p.akce, vyprodej:p.vyprodej, zobrazit:p.zobrazit,
         nejprodavanejsi:p.nejprodavanejsi, novinka:p.novinka, doporucujeme:p.doporucujeme
-    }]));
+    }])) : { ...(window.HONZUV_MARKET_CENY || {}) };
+    const cenyFinal = { ...cenyZCsv, ...(lokalniCeny || {}) };
     return {produkty:[...produktyMap.values()], ceny:cenyFinal, kategorie, nastaveni:nastaveniData, sekce, podkategorie};
 }
 async function nactiCsvVolitelne(url, nazev) {
