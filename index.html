@@ -945,7 +945,7 @@ async function nactiData() {
     }
 
     const cenyFinal = produktyData.length ? Object.fromEntries(produktyData.map(p => [String(p.id), {
-        cena:p.cena, akce:p.akce, vyprodej:p.vyprodej, zobrazit:p.zobrazit,
+        cena:p.cena, prodejniJednotka:p.prodejniJednotka, akce:p.akce, vyprodej:p.vyprodej, zobrazit:p.zobrazit,
         nejprodavanejsi:p.nejprodavanejsi, novinka:p.novinka, doporucujeme:p.doporucujeme
     }])) : { ...(window.HONZUV_MARKET_CENY || {}) };
     return {produkty:[...produktyMap.values()], ceny:cenyFinal, kategorie, nastaveni:nastaveniData, sekce, podkategorie};
@@ -984,11 +984,11 @@ function produktyZCsv(rows) {
     const indexNazvu = najdiSloupec(hlavicka, ["nazev produktu", "nazev"]);
     const indexBaleni = najdiSloupec(hlavicka, ["baleni"]);
     const indexKategorie = najdiSloupec(hlavicka, ["kategorie"]);
-    // V Honzově Marketu je cena v Google tabulce vždy ZA 1 KG.
-    // Bereme proto přednostně sloupec "Cena za kg"; pokud má tabulka
-    // obecný název "Cena", používáme ho také jako cenu za kg.
+    const indexProdejniJednotky = najdiSloupec(hlavicka, ["prodejni jednotka", "jednotka"]);
+    // Sloupec ceny obsahuje cenu za hodnotu uvedenou v "Prodejní jednotce".
+    // U starších tabulek bez prodejní jednotky zůstává výchozí jednotkou kg.
     // Publikovaná Honzova tabulka historicky používá název „Cena za balení (Kč)",
-    // ale hodnoty v tomto sloupci jsou podle používaného gastro modelu ceny za kg.
+    // ale jeho hodnoty nyní vykládáme podle prodejní jednotky daného řádku.
     // Přijímáme starý i nový název, aby změna hlavičky nikdy neshodila katalog.
     const indexCenyKg = najdiSloupec(hlavicka, ["cena za kg", "cena kg", "cena", "cena za baleni kc", "cena za baleni"]);
     const indexAkce = najdiSloupec(hlavicka, ["akcni produkt ano ne", "akcni produkt", "akce"]);
@@ -1010,6 +1010,7 @@ function produktyZCsv(rows) {
         kategorie: indexKategorie >= 0 ? String(row[indexKategorie] || "").trim() : "",
         podkategorie: indexPodkategorie >= 0 ? String(row[indexPodkategorie] || "").trim() : "",
         cena: prevedCenu(row[indexCenyKg]),
+        prodejniJednotka: normalizujProdejniJednotku(indexProdejniJednotky >= 0 ? row[indexProdejniJednotky] : "kg"),
         akce: indexAkce >= 0 && /^(ano|yes|1|true)$/i.test(String(row[indexAkce] || "").trim()),
         vyprodej: indexVyprodej >= 0 && /^(ano|yes|1|true)$/i.test(String(row[indexVyprodej] || "").trim()),
         zobrazit: indexViditelnosti < 0 || !/^(ne|no|0|false)$/i.test(String(row[indexViditelnosti] || "").trim()),
@@ -1188,7 +1189,8 @@ function vykresliProdukty() {
 
     zobrazeno.forEach(produkt => {
         const cena = cenaProduktu(produkt.id);
-        const cenaKg = cenaZaKgProduktu(produkt.id);
+        const cenaZaJednotku = cenaZaJednotkuProduktu(produkt.id);
+        const jednotka = prodejniJednotkaProduktu(produkt.id);
         const index = produkty.findIndex(polozka => polozka.id === produkt.id);
         const maCenu = Number.isFinite(cena);
         const pocetVKosiku = mnozstviProduktuVKosiku(produkt.id);
@@ -1205,8 +1207,8 @@ function vykresliProdukty() {
                     <p class="product-description">Balení: ${escapeHtml(produkt.baleni)}${produkt.podkategorie ? ` · ${escapeHtml(produkt.podkategorie)}` : ""}</p>
                     <div class="price-row">
                         <span class="price ${maCenu ? "" : "price-unavailable"}">
-                            ${maCenu ? `${formatCena.format(cenaKg)}/kg` : "Cena bude doplněna"}
-                            <small>${maCenu ? `${escapeHtml(produkt.baleni)} → ${formatCena.format(cena)}/bal.` : ""}</small>
+                            ${maCenu ? `${formatCena.format(cenaZaJednotku)}/${escapeHtml(jednotka)}` : "Cena bude doplněna"}
+                            <small>${maCenu && jednotka === "kg" ? `${escapeHtml(produkt.baleni)} → ${formatCena.format(cena)}/bal.` : ""}</small>
                         </span>
                         <div class="product-actions">
                             ${pocetVKosiku > 0 ? `<div class="card-quantity" aria-label="Množství v košíku"><button type="button" onclick="zmenMnozstviProduktu('${escapeJs(produkt.id)}',-1)">−</button><strong>${pocetVKosiku}</strong><button type="button" onclick="zmenMnozstviProduktu('${escapeJs(produkt.id)}',1)">+</button></div>` : `<button class="add-button" type="button" onclick="pridejDoKosiku(${index}, this)" ${maCenu ? "" : "disabled"}>${maCenu ? "Přidat" : "Není skladem"}</button>`}
@@ -1350,12 +1352,12 @@ function vykresliKosik() {
     polozky.forEach(({ produkt, pocet: mnozstvi, index, cena }) => {
         obsahKosiku.insertAdjacentHTML("beforeend", `
             <div class="cart-item">
-                <div><strong>${escapeHtml(produkt.nazev)}</strong><small>${escapeHtml(produkt.baleni)} · ${formatCena.format(cenaZaKgProduktu(produkt.id))}/kg</small><small>${formatCena.format(cena)} / bal.</small></div>
+                <div><strong>${escapeHtml(produkt.nazev)}</strong><small>${escapeHtml(produkt.baleni)} · ${formatCena.format(cenaZaJednotkuProduktu(produkt.id))}/${escapeHtml(prodejniJednotkaProduktu(produkt.id))}</small>${prodejniJednotkaProduktu(produkt.id) === "kg" ? `<small>${formatCena.format(cena)} / bal.</small>` : ""}</div>
                 <div>
                     <strong>${formatCena.format(cena * mnozstvi)}</strong>
                     <div class="cart-controls">
                         <button type="button" onclick="uberProdukt(${index})" aria-label="Odebrat">−</button>
-                        <span>${mnozstvi} bal.</span>
+                        <span>${mnozstvi} ${escapeHtml(jednotkaMnozstviProduktu(produkt.id))}</span>
                         <button type="button" onclick="pridejKus(${index})" aria-label="Přidat">+</button>
                     </div>
                 </div>
@@ -1397,9 +1399,10 @@ function odeslatWhatsApp() {
         "Dobrý den,", "", "objednávám:", "",
         ...polozky.flatMap(({ produkt, pocet, cena }) => [
             `${produkt.nazev} (ID: ${produkt.id})`,
-            `${pocet} bal. · ${produkt.baleni}`,
-            `${formatCena.format(cena)} / bal.`,
-            `${formatCena.format(cenaZaKgProduktu(produkt.id))} / kg`,
+            `${pocet} ${jednotkaMnozstviProduktu(produkt.id)} · ${produkt.baleni}`,
+            ...(prodejniJednotkaProduktu(produkt.id) === "kg"
+                ? [`${formatCena.format(cena)} / bal.`, `${formatCena.format(cenaZaJednotkuProduktu(produkt.id))} / kg`]
+                : [`${formatCena.format(cenaZaJednotkuProduktu(produkt.id))} / ${prodejniJednotkaProduktu(produkt.id)}`]),
             `Celkem položka: ${formatCena.format(cena * pocet)}`,
             ""
         ]),
@@ -1445,22 +1448,42 @@ function koeficientBaleni(baleni) {
     return 1;
 }
 
-// DŮLEŽITÉ: cena uložená v Google tabulce = cena ZA 1 KG.
-// Web ji vždy přepočítá podle skutečné hmotnosti balení.
+function normalizujProdejniJednotku(hodnota) {
+    const jednotka = normalizujText(String(hodnota || "")).replace(/\s+/g, "");
+    if (["ks", "kus", "kusy"].includes(jednotka)) return "ks";
+    if (["bal", "bal.", "baleni"].includes(jednotka)) return "bal.";
+    if (["karton", "kart", "kart."].includes(jednotka)) return "karton";
+    return "kg";
+}
+
+function prodejniJednotkaProduktu(id) {
+    const hodnota = ceny[String(id)];
+    return normalizujProdejniJednotku(typeof hodnota === "object" ? hodnota?.prodejniJednotka : "kg");
+}
+
+function jednotkaMnozstviProduktu(id) {
+    const jednotka = prodejniJednotkaProduktu(id);
+    return jednotka === "kg" ? "bal." : jednotka;
+}
+
+// Jen cena za kg se přepočítá podle hmotnosti balení. Ceny za ks,
+// balení a karton jsou konečné ceny dané prodejní jednotky.
 function cenaProduktu(id) {
     const hodnota = ceny[String(id)];
-    const cenaZaKg = typeof hodnota === "number" ? hodnota : Number(hodnota?.cena);
-    if (!Number.isFinite(cenaZaKg)) return NaN;
+    const cenaZaJednotku = typeof hodnota === "number" ? hodnota : Number(hodnota?.cena);
+    if (!Number.isFinite(cenaZaJednotku)) return NaN;
+
+    if (prodejniJednotkaProduktu(id) !== "kg") return cenaZaJednotku;
 
     const produkt = produkty.find(p => p.id === String(id));
     const kgVBaleni = koeficientBaleni(produkt?.baleni);
-    return cenaZaKg * kgVBaleni;
+    return cenaZaJednotku * kgVBaleni;
 }
 
-function cenaZaKgProduktu(id) {
+function cenaZaJednotkuProduktu(id) {
     const hodnota = ceny[String(id)];
-    const cenaZaKg = typeof hodnota === "number" ? hodnota : Number(hodnota?.cena);
-    return Number.isFinite(cenaZaKg) ? cenaZaKg : NaN;
+    const cenaZaJednotku = typeof hodnota === "number" ? hodnota : Number(hodnota?.cena);
+    return Number.isFinite(cenaZaJednotku) ? cenaZaJednotku : NaN;
 }
 
 function maPriznak(id,klic){const h=ceny[String(id)];return typeof h==="object"&&h?.[klic]===true&&Number.isFinite(cenaProduktu(id));}

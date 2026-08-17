@@ -12,5 +12,10 @@ Ovládání přes Google Tabulky:
 `index.html` používá kořenové `katalog.js`, `ceny.js`, `nastaveni.js`. Neobsahuje rozbitý odkaz na `Data/katalog.js`.
 
 
-## Ceny – důležité
-Cena v Google tabulce je vždy cena za 1 kg. Web automaticky násobí cenu hmotností celého balení (např. 179,90 Kč/kg × 5 kg = 899,50 Kč za balení).
+## Ceny a prodejní jednotky – důležité
+Do listu `Produkty a ceny` přidejte sloupec `Prodejní jednotka`. Povolené hodnoty jsou `kg`, `ks`, `bal.` a `karton`.
+
+- `kg`: cena je za 1 kg a web ji automaticky násobí hmotností celého balení (např. 179,90 Kč/kg × 5 kg = 899,50 Kč za balení).
+- `ks`, `bal.`, `karton`: cena je konečná cena za uvedenou prodejní jednotku a hmotnost z textu balení ji nijak nemění.
+
+Pokud sloupec nebo hodnota chybí, web kvůli zpětné kompatibilitě použije `kg`.
