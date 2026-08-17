@@ -992,7 +992,10 @@ function produktyZCsv(rows) {
     // Publikovaná Honzova tabulka historicky používá název „Cena za balení (Kč)",
     // ale jeho hodnoty nyní vykládáme podle prodejní jednotky daného řádku.
     // Přijímáme starý i nový název, aby změna hlavičky nikdy neshodila katalog.
-    const indexCenyKg = najdiSloupec(hlavicka, ["cena za kg", "cena kg", "cena", "cena za baleni kc", "cena za baleni"]);
+    const indexCenySDph = najdiSloupec(hlavicka, ["prodejni cena s dph", "cena s dph"]);
+    const indexCenyBezDph = najdiSloupec(hlavicka, ["prodejni cena bez dph", "cena bez dph"]);
+    const indexSazbyDph = najdiSloupec(hlavicka, ["sazba dph", "dph"]);
+    const indexPuvodniCeny = najdiSloupec(hlavicka, ["cena za kg", "cena kg", "cena", "cena za baleni kc", "cena za baleni"]);
     const indexAkce = najdiSloupec(hlavicka, ["akcni produkt ano ne", "akcni produkt", "akce"]);
     const indexVyprodej = najdiSloupec(hlavicka, ["vyprodej ano ne", "vyprodej"]);
     const indexViditelnosti = najdiSloupec(hlavicka, ["zobrazit na webu ano ne", "zobrazit na webu", "zobrazit"]);
@@ -1001,17 +1004,26 @@ function produktyZCsv(rows) {
     const indexNovinka = najdiSloupec(hlavicka, ["novinka"]);
     const indexDoporucujeme = najdiSloupec(hlavicka, ["doporucujeme"]);
 
-    if (indexKodu === -1 || indexCenyKg === -1) {
+    if (indexKodu === -1 || (indexCenySDph === -1 && indexPuvodniCeny === -1 && indexCenyBezDph === -1)) {
         throw new Error(`Google tabulka produktů nemá rozpoznaný sloupec ceny. Nalezené sloupce: ${hlavicka.join(", ")}`);
     }
 
-    return rows.slice(1).map(row => ({
+    return rows.slice(1).map(row => {
+        let cenaSDph = indexCenySDph >= 0 ? prevedCenu(row[indexCenySDph]) : NaN;
+        if (!Number.isFinite(cenaSDph) && indexCenyBezDph >= 0) {
+            const cenaBezDph = prevedCenu(row[indexCenyBezDph]);
+            const sazbaDph = indexSazbyDph >= 0 ? prevedCenu(row[indexSazbyDph]) : NaN;
+            if (Number.isFinite(cenaBezDph) && Number.isFinite(sazbaDph)) cenaSDph = cenaBezDph * (1 + sazbaDph / 100);
+        }
+        if (!Number.isFinite(cenaSDph) && indexPuvodniCeny >= 0) cenaSDph = prevedCenu(row[indexPuvodniCeny]);
+
+        return {
         id: String(row[indexKodu] || "").trim(),
         nazev: indexNazvu >= 0 ? String(row[indexNazvu] || "").trim() : "",
         baleni: indexBaleni >= 0 ? String(row[indexBaleni] || "").trim() : "",
         kategorie: indexKategorie >= 0 ? String(row[indexKategorie] || "").trim() : "",
         podkategorie: indexPodkategorie >= 0 ? String(row[indexPodkategorie] || "").trim() : "",
-        cena: prevedCenu(row[indexCenyKg]),
+        cena: cenaSDph,
         prodejniJednotka: indexProdejniJednotky >= 0 && String(row[indexProdejniJednotky] || "").trim()
             ? normalizujProdejniJednotku(row[indexProdejniJednotky])
             : "",
@@ -1021,7 +1033,8 @@ function produktyZCsv(rows) {
         nejprodavanejsi: indexNejprodavanejsi >= 0 && /^(ano|yes|1|true)$/i.test(String(row[indexNejprodavanejsi] || "").trim()),
         novinka: indexNovinka >= 0 && /^(ano|yes|1|true)$/i.test(String(row[indexNovinka] || "").trim()),
         doporucujeme: indexDoporucujeme >= 0 && /^(ano|yes|1|true)$/i.test(String(row[indexDoporucujeme] || "").trim())
-    })).filter(p => p.id);
+        };
+    }).filter(p => p.id);
 }
 
 function kategorieZCsv(rows) {
