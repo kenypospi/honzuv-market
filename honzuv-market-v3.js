@@ -334,7 +334,7 @@ function vykresliProdukty() {
         const pocetVKosiku = mnozstviProduktuVKosiku(produkt.id);
         obsah.insertAdjacentHTML("beforeend", `
             <article class="card">
-                <img src="Fotky/${encodeURIComponent(produkt.id)}.jpg" alt="${escapeHtml(produkt.nazev)}" class="product-photo" onerror="nahradFotkuSkupiny(this, '${escapeJs(produkt.fotkaSkupiny)}')" loading="lazy">
+                <img src="Fotky/${encodeURIComponent(produkt.id)}.png" alt="${escapeHtml(produkt.nazev)}" class="product-photo" onerror="nahradFotkuProduktu(this, '${escapeJs(produkt.id)}', '${escapeJs(produkt.fotkaSkupiny)}')" loading="lazy">
                 <div class="card-body">
                     <div class="product-meta">
                         <span class="tag">${escapeHtml(zobrazNazevKategorie(produkt.kategorie))}</span>
@@ -428,6 +428,15 @@ function nahradFotkuSkupiny(obrazek, souborSkupiny) {
     }
     obrazek.dataset.nahradniFotka = "ano";
     obrazek.src = `Fotky/skupiny/${encodeURIComponent(souborSkupiny)}`;
+}
+
+function nahradFotkuProduktu(obrazek, idProduktu, souborSkupiny) {
+    if (obrazek.dataset.zkusenoJpg !== "ano") {
+        obrazek.dataset.zkusenoJpg = "ano";
+        obrazek.src = `Fotky/${encodeURIComponent(idProduktu)}.jpg`;
+        return;
+    }
+    nahradFotkuSkupiny(obrazek, souborSkupiny);
 }
 
 function vytvorNahledBezFotky() {
