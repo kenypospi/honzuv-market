@@ -851,6 +851,7 @@ const FILTR_VYPRODEJ = "__vyprodej__";
 const FILTR_DOPORUCUJEME = "__doporucujeme__";
 const FILTR_OBLIBENE = "__oblibene__";
 const FILTR_STALA_NABIDKA = "__stala_nabidka__";
+const KATEGORIE_SOUS_VIDE = "Sous-vide výrobky";
 let produkty = [];
 let ceny = {};
 let kosik = nactiKosik();
@@ -1166,7 +1167,8 @@ function vytvorFiltry() {
     filtry.querySelectorAll(".filter").forEach(b=>b.addEventListener("click",()=>filtrKategorie(b.dataset.kategorie)));
 
     const list=document.getElementById("seznamKategorii");
-    const zdrojKategorii=kategorieNastaveni.length?kategorieNastaveni:[...new Set(produkty.map(p=>p.kategorie))].map(k=>({kategorie:k,nazev:k,zobrazit:true,poradi:9999}));
+    const zdrojKategorii=[...(kategorieNastaveni.length?kategorieNastaveni:[...new Set(produkty.map(p=>p.kategorie))].map(k=>({kategorie:k,nazev:k,zobrazit:true,poradi:9999})))];
+    if(!zdrojKategorii.some(k=>k.kategorie===KATEGORIE_SOUS_VIDE)) zdrojKategorii.push({kategorie:KATEGORIE_SOUS_VIDE,nazev:KATEGORIE_SOUS_VIDE,zobrazit:true,poradi:9999});
     const poradiMrazenych=Number(zdrojKategorii.find(k=>k.kategorie==="Mražené výrobky")?.poradi)||4;
     const kats=zdrojKategorii.slice().sort((a,b)=>{
         const poradiKategorie = k => k.kategorie === "Zmrzliny" ? poradiMrazenych + 0.1 : Number(k.poradi) || 9999;
@@ -1483,7 +1485,20 @@ function normalizujProdejniJednotku(hodnota) {
     return "kg";
 }
 
+function jeZmrzlinaPoKartonu(id) {
+    const produkt = produkty.find(p => p.id === String(id));
+    return normalizujText(produkt?.kategorie || "") === "zmrzliny";
+}
+
+function pocetKusuVBaleni(baleni) {
+    const shoda = String(baleni || "").trim().match(/^(\d+)\s*[x×]/i);
+    const pocet = shoda ? Number(shoda[1]) : 1;
+    return Number.isFinite(pocet) && pocet > 0 ? pocet : 1;
+}
+
 function prodejniJednotkaProduktu(id) {
+    if (jeZmrzlinaPoKartonu(id)) return "karton";
+
     const hodnota = ceny[String(id)];
     const zadanaJednotka = typeof hodnota === "object" ? String(hodnota?.prodejniJednotka || "").trim() : "";
     if (zadanaJednotka) return normalizujProdejniJednotku(zadanaJednotka);
@@ -1501,12 +1516,17 @@ function jednotkaMnozstviProduktu(id) {
     return jednotka === "kg" ? "bal." : jednotka;
 }
 
-// Jen cena za kg se přepočítá podle hmotnosti balení. Ceny za ks,
-// balení a karton jsou konečné ceny dané prodejní jednotky.
+// Cena zmrzliny je v tabulce za kus, ale zákazník vždy kupuje celý karton.
+// U ostatního zboží se jen cena za kg přepočítá podle hmotnosti balení.
 function cenaProduktu(id) {
     const hodnota = ceny[String(id)];
     const cenaZaJednotku = typeof hodnota === "number" ? hodnota : Number(hodnota?.cena);
     if (!Number.isFinite(cenaZaJednotku)) return NaN;
+
+    if (jeZmrzlinaPoKartonu(id)) {
+        const produkt = produkty.find(p => p.id === String(id));
+        return cenaZaJednotku * pocetKusuVBaleni(produkt?.baleni);
+    }
 
     if (prodejniJednotkaProduktu(id) !== "kg") return cenaZaJednotku;
 
@@ -1516,6 +1536,8 @@ function cenaProduktu(id) {
 }
 
 function cenaZaJednotkuProduktu(id) {
+    if (jeZmrzlinaPoKartonu(id)) return cenaProduktu(id);
+
     const hodnota = ceny[String(id)];
     const cenaZaJednotku = typeof hodnota === "number" ? hodnota : Number(hodnota?.cena);
     return Number.isFinite(cenaZaJednotku) ? cenaZaJednotku : NaN;

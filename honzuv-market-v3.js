@@ -8,6 +8,7 @@ const FILTR_VYPRODEJ = "__vyprodej__";
 const FILTR_DOPORUCUJEME = "__doporucujeme__";
 const FILTR_OBLIBENE = "__oblibene__";
 const FILTR_STALA_NABIDKA = "__stala_nabidka__";
+const KATEGORIE_SOUS_VIDE = "Sous-vide výrobky";
 let produkty = [];
 let ceny = {};
 let kosik = nactiKosik();
@@ -296,7 +297,8 @@ function vytvorFiltry() {
     filtry.querySelectorAll(".filter").forEach(b=>b.addEventListener("click",()=>filtrKategorie(b.dataset.kategorie)));
 
     const list=document.getElementById("seznamKategorii");
-    const kats=kategorieNastaveni.length?kategorieNastaveni:[...new Set(produkty.map(p=>p.kategorie))].map(k=>({kategorie:k,nazev:k,zobrazit:true,poradi:9999}));
+    const kats=[...(kategorieNastaveni.length?kategorieNastaveni:[...new Set(produkty.map(p=>p.kategorie))].map(k=>({kategorie:k,nazev:k,zobrazit:true,poradi:9999})))];
+    if(!kats.some(k=>k.kategorie===KATEGORIE_SOUS_VIDE)) kats.push({kategorie:KATEGORIE_SOUS_VIDE,nazev:KATEGORIE_SOUS_VIDE,zobrazit:true,poradi:9999});
     list.innerHTML=kats.map(k=>{
         const subs=podkategorieNastaveni.filter(s=>s.kategorie===k.kategorie);
         const pocet=produkty.filter(p=>p.kategorie===k.kategorie&&jeProduktViditelny(p.id)).length;
