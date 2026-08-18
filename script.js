@@ -106,7 +106,8 @@ async function nactiData() {
         cena:p.cena, akce:p.akce, vyprodej:p.vyprodej, zobrazit:p.zobrazit,
         nejprodavanejsi:p.nejprodavanejsi, novinka:p.novinka, doporucujeme:p.doporucujeme
     }])) : { ...(window.HONZUV_MARKET_CENY || {}) };
-    const cenyFinal = { ...cenyZCsv, ...(lokalniCeny || {}) };
+    // Google tabulka je hlavní zdroj, lokální JSON slouží pouze jako záloha.
+    const cenyFinal = { ...(lokalniCeny || {}), ...cenyZCsv };
     return {produkty:[...produktyMap.values()], ceny:cenyFinal, kategorie, nastaveni:nastaveniData, sekce, podkategorie};
 }
 async function nactiCsvVolitelne(url, nazev) {

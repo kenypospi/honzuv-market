@@ -835,11 +835,11 @@ window.HONZUV_MARKET_KATALOG = [{"id":"138045","nazev":"Obalované filety z tre
 window.HONZUV_MARKET_CENY = {};
 
 // HONZŮV MARKET – Google Tabulky
-window.HONZUV_MARKET_PRODUKTY_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRa_jvuLVK2rXb6tXZZKPcpCEj4CqCWlXCdayHCqo-Fg2CW84FFmTzgr35jmLsF1Q/pub?gid=443885828&single=true&output=csv";
-window.HONZUV_MARKET_KATEGORIE_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRa_jvuLVK2rXb6tXZZKPcpCEj4CqCWlXCdayHCqo-Fg2CW84FFmTzgr35jmLsF1Q/pub?gid=47548890&single=true&output=csv";
-window.HONZUV_MARKET_NASTAVENI_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRa_jvuLVK2rXb6tXZZKPcpCEj4CqCWlXCdayHCqo-Fg2CW84FFmTzgr35jmLsF1Q/pub?gid=221722833&single=true&output=csv";
-window.HONZUV_MARKET_SEKCE_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRa_jvuLVK2rXb6tXZZKPcpCEj4CqCWlXCdayHCqo-Fg2CW84FFmTzgr35jmLsF1Q/pub?gid=560558408&single=true&output=csv";
-window.HONZUV_MARKET_PODKATEGORIE_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRa_jvuLVK2rXb6tXZZKPcpCEj4CqCWlXCdayHCqo-Fg2CW84FFmTzgr35jmLsF1Q/pub?gid=1801838832&single=true&output=csv";
+window.HONZUV_MARKET_PRODUKTY_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRa_jvuLVK2rXb6tXZZKPcpCEj4CqCWlXCdayHCqo-Fg2CW84FFmTzgr35jmLsF1Q/pub?gid=1951221192&single=true&output=csv";
+window.HONZUV_MARKET_KATEGORIE_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRa_jvuLVK2rXb6tXZZKPcpCEj4CqCWlXCdayHCqo-Fg2CW84FFmTzgr35jmLsF1Q/pub?gid=839919432&single=true&output=csv";
+window.HONZUV_MARKET_NASTAVENI_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRa_jvuLVK2rXb6tXZZKPcpCEj4CqCWlXCdayHCqo-Fg2CW84FFmTzgr35jmLsF1Q/pub?gid=3639667&single=true&output=csv";
+window.HONZUV_MARKET_SEKCE_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRa_jvuLVK2rXb6tXZZKPcpCEj4CqCWlXCdayHCqo-Fg2CW84FFmTzgr35jmLsF1Q/pub?gid=1094517022&single=true&output=csv";
+window.HONZUV_MARKET_PODKATEGORIE_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRa_jvuLVK2rXb6tXZZKPcpCEj4CqCWlXCdayHCqo-Fg2CW84FFmTzgr35jmLsF1Q/pub?gid=1980082616&single=true&output=csv";
 
 const TELEFON_WHATSAPP = "420607967939";
 const CENA_DOPRAVY = 79;
@@ -949,7 +949,9 @@ async function nactiData() {
         cena:p.cena, prodejniJednotka:p.prodejniJednotka, akce:p.akce, vyprodej:p.vyprodej, zobrazit:p.zobrazit,
         nejprodavanejsi:p.nejprodavanejsi, novinka:p.novinka, doporucujeme:p.doporucujeme
     }])) : { ...(window.HONZUV_MARKET_CENY || {}) };
-    const cenyFinal = { ...cenyZCsv, ...(lokalniCeny || {}) };
+    // Google tabulka je hlavní zdroj. Lokální ceny jsou jen nouzová záloha,
+    // proto je musí aktuální hodnoty z CSV přepsat, ne naopak.
+    const cenyFinal = { ...(lokalniCeny || {}), ...cenyZCsv };
     return {produkty:[...produktyMap.values()], ceny:cenyFinal, kategorie, nastaveni:nastaveniData, sekce, podkategorie};
 }
 async function nactiCsvVolitelne(url, nazev) {
