@@ -634,7 +634,8 @@ function jeStalaNabidka(id) {
 
 function jeProduktViditelny(id) {
     const hodnota = ceny[String(id)];
-    return typeof hodnota !== "object" || hodnota?.zobrazit !== false;
+    return Number.isFinite(cenaProduktu(id))
+        && (typeof hodnota !== "object" || hodnota?.zobrazit !== false);
 }
 
 function ulozKosik() { localStorage.setItem("honzuvMarketKosik", JSON.stringify(kosik)); }
