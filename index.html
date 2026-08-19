@@ -1212,6 +1212,9 @@ function vykresliProdukty() {
         const cena = cenaProduktu(produkt.id);
         const cenaZaJednotku = cenaZaJednotkuProduktu(produkt.id);
         const jednotka = prodejniJednotkaProduktu(produkt.id);
+        const jeZmrzlina = jeZmrzlinaPoKartonu(produkt.id);
+        const zobrazenaCena = jeZmrzlina ? cenaZaKusZmrzliny(produkt.id) : cenaZaJednotku;
+        const zobrazenaJednotka = jeZmrzlina ? "ks" : jednotka;
         const index = produkty.findIndex(polozka => polozka.id === produkt.id);
         const maCenu = Number.isFinite(cena);
         const pocetVKosiku = mnozstviProduktuVKosiku(produkt.id);
@@ -1228,8 +1231,8 @@ function vykresliProdukty() {
                     <p class="product-description">Balení: ${escapeHtml(produkt.baleni)}${produkt.podkategorie ? ` · ${escapeHtml(produkt.podkategorie)}` : ""}</p>
                     <div class="price-row">
                         <span class="price ${maCenu ? "" : "price-unavailable"}">
-                            ${maCenu ? `${formatCena.format(cenaZaJednotku)}/${escapeHtml(jednotka)}` : "Cena bude doplněna"}
-                            <small>${maCenu && jednotka === "kg" ? `${escapeHtml(produkt.baleni)} → ${formatCena.format(cena)}/bal.` : ""}</small>
+                            ${maCenu ? `${formatCena.format(zobrazenaCena)}/${escapeHtml(zobrazenaJednotka)}` : "Cena bude doplněna"}
+                            <small>${maCenu && jeZmrzlina ? `${pocetKusuVBaleni(produkt.baleni)} ks → ${formatCena.format(cena)}/karton` : maCenu && jednotka === "kg" ? `${escapeHtml(produkt.baleni)} → ${formatCena.format(cena)}/bal.` : ""}</small>
                         </span>
                         <div class="product-actions">
                             ${pocetVKosiku > 0 ? `<div class="card-quantity" aria-label="Množství v košíku"><button type="button" onclick="zmenMnozstviProduktu('${escapeJs(produkt.id)}',-1)">−</button><strong>${pocetVKosiku}</strong><button type="button" onclick="zmenMnozstviProduktu('${escapeJs(produkt.id)}',1)">+</button></div>` : `<button class="add-button" type="button" onclick="pridejDoKosiku(${index}, this)" ${maCenu ? "" : "disabled"}>${maCenu ? "Přidat" : "Není skladem"}</button>`}
@@ -1541,6 +1544,12 @@ function cenaZaJednotkuProduktu(id) {
     const hodnota = ceny[String(id)];
     const cenaZaJednotku = typeof hodnota === "number" ? hodnota : Number(hodnota?.cena);
     return Number.isFinite(cenaZaJednotku) ? cenaZaJednotku : NaN;
+}
+
+function cenaZaKusZmrzliny(id) {
+    const hodnota = ceny[String(id)];
+    const cenaZaKus = typeof hodnota === "number" ? hodnota : Number(hodnota?.cena);
+    return Number.isFinite(cenaZaKus) ? cenaZaKus : NaN;
 }
 
 function maPriznak(id,klic){const h=ceny[String(id)];return typeof h==="object"&&h?.[klic]===true&&Number.isFinite(cenaProduktu(id));}
