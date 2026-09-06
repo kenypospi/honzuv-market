@@ -1220,7 +1220,7 @@ function vykresliProdukty() {
         const pocetVKosiku = mnozstviProduktuVKosiku(produkt.id);
         obsah.insertAdjacentHTML("beforeend", `
             <article class="card">
-                <img src="Fotky/${encodeURIComponent(produkt.id)}.png" alt="${escapeHtml(produkt.nazev)}" class="product-photo" onerror="nahradFotkuProduktu(this, '${escapeJs(produkt.id)}', '${escapeJs(produkt.fotkaSkupiny)}')" loading="lazy">
+                <img src="Fotky/${encodeURIComponent(produkt.id)}.png?v=20260906-2" alt="${escapeHtml(produkt.nazev)}" class="product-photo" onerror="nahradFotkuProduktu(this, '${escapeJs(produkt.id)}', '${escapeJs(produkt.fotkaSkupiny)}')" loading="lazy">
                 <div class="card-body">
                     <div class="product-meta">
                         <span class="tag">${escapeHtml(zobrazNazevKategorie(produkt.kategorie))}</span>
@@ -1313,12 +1313,12 @@ function nahradFotkuSkupiny(obrazek, souborSkupiny) {
         return;
     }
     obrazek.dataset.nahradniFotka = "ano";
-    obrazek.src = `Fotky/skupiny/${encodeURIComponent(souborSkupiny)}`;
+    obrazek.src = `Fotky/skupiny/${encodeURIComponent(souborSkupiny)}?v=20260906-2`;
 }
 function nahradFotkuProduktu(obrazek, idProduktu, souborSkupiny) {
     if (obrazek.dataset.zkusenoJpg !== "ano") {
         obrazek.dataset.zkusenoJpg = "ano";
-        obrazek.src = `Fotky/${encodeURIComponent(idProduktu)}.jpg`;
+        obrazek.src = `Fotky/${encodeURIComponent(idProduktu)}.jpg?v=20260906-2`;
         return;
     }
     nahradFotkuSkupiny(obrazek, souborSkupiny);
