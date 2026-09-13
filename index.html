@@ -865,6 +865,7 @@ window.HONZUV_MARKET_PODKATEGORIE_CSV_URL = "https://docs.google.com/spreadsheet
 const TELEFON_WHATSAPP = "420607967939";
 const CENA_DOPRAVY = 79;
 const MINIMUM_ROZVOZU = 700;
+const DOPRAVA_ZDARMA_OD = 1500;
 function chybaRozvozu(mezisoucet) {
     if (Math.round(mezisoucet * 100) < MINIMUM_ROZVOZU * 100) return "Rozvoz je možný při objednávce zboží alespoň za 700 Kč. Osobní odběr v Otvovicích je zdarma a bez tohoto minima.";
     return "";
@@ -1411,7 +1412,8 @@ function vykresliKosik() {
 
     const mezisoucet = polozky.reduce((soucet, polozka) => soucet + polozka.cena * polozka.pocet, 0);
     const cenaDopravy = CENA_DOPRAVY;
-    const doprava = zpusobDopravy === "doprava" ? cenaDopravy : 0;
+    const dopravaZdarma = mezisoucet >= DOPRAVA_ZDARMA_OD;
+    const doprava = zpusobDopravy === "doprava" && !dopravaZdarma ? cenaDopravy : 0;
     polozky.forEach(({ produkt, pocet: mnozstvi, index, cena }) => {
         obsahKosiku.insertAdjacentHTML("beforeend", `
             <div class="cart-item">
@@ -1432,12 +1434,12 @@ function vykresliKosik() {
         <div class="delivery-choice">
             <strong>Způsob předání</strong>
             <label><input type="radio" name="zpusobDopravy" value="osobni" ${zpusobDopravy === "osobni" ? "checked" : ""} onchange="nastavZpusobDopravy(this.value)"> Osobní odběr v Otvovicích zdarma</label>
-            <label><input type="radio" name="zpusobDopravy" value="doprava" ${zpusobDopravy === "doprava" ? "checked" : ""} onchange="nastavZpusobDopravy(this.value)"> Doprava ${formatCena.format(cenaDopravy)}</label>
-            <p>Rozvoz ve čtvrtek za 79 Kč při nákupu zboží od 700 Kč. Místo a případně jiný den si potvrdíme osobně.</p>
+            <label><input type="radio" name="zpusobDopravy" value="doprava" ${zpusobDopravy === "doprava" ? "checked" : ""} onchange="nastavZpusobDopravy(this.value)"> Doprava ${dopravaZdarma ? "zdarma" : formatCena.format(cenaDopravy)}</label>
+            <p>Rozvoz ve čtvrtek za 79 Kč při nákupu zboží od 700 Kč. Od 1 500 Kč je doprava zdarma. Místo a případně jiný den si potvrdíme osobně.</p>
             ${zpusobDopravy === "doprava" ? `${mezisoucet<MINIMUM_ROZVOZU?`<p role="status">Do minima pro rozvoz chybí ${formatCena.format(MINIMUM_ROZVOZU-mezisoucet)} za zboží. Můžete také zvolit osobní odběr zdarma.</p>`:''}<label class="delivery-address" for="dodaciAdresa"><span>Dodací adresa <em>*</em></span><textarea id="dodaciAdresa" rows="3" autocomplete="street-address" required placeholder="Ulice a číslo, obec, PSČ" oninput="ulozDodaciAdresu(this.value)">${escapeHtml(dodaciAdresa)}</textarea></label>` : ""}
         </div>
         <div class="cart-total cart-subtotal"><span>Mezisoučet</span><span>${formatCena.format(mezisoucet)}</span></div>
-        <div class="cart-total cart-subtotal"><span>Doprava</span><span>${doprava ? formatCena.format(doprava) : "Osobní odběr"}</span></div>
+        <div class="cart-total cart-subtotal"><span>Doprava</span><span>${zpusobDopravy === "doprava" ? (dopravaZdarma ? "Zdarma" : formatCena.format(doprava)) : "Osobní odběr"}</span></div>
         <div class="cart-total"><span>Celkem</span><span>${formatCena.format(mezisoucet + doprava)}</span></div>
     `);
 }
@@ -1464,7 +1466,8 @@ function odeslatWhatsApp() {
         if (chyba) { alert(chyba); return; }
     }
     const cenaDopravy = CENA_DOPRAVY;
-    const doprava = zpusobDopravy === "doprava" ? cenaDopravy : 0;
+    const dopravaZdarma = mezisoucet >= DOPRAVA_ZDARMA_OD;
+    const doprava = zpusobDopravy === "doprava" && !dopravaZdarma ? cenaDopravy : 0;
     const zprava = [
         "Dobrý den,", "", "objednávám:", "",
         ...polozky.flatMap(({ produkt, pocet, cena }) => [
@@ -1477,7 +1480,7 @@ function odeslatWhatsApp() {
             ""
         ]),
         "", "--------------------", `Mezisoučet: ${formatCena.format(mezisoucet)}`,
-        `Předání: ${zpusobDopravy === "doprava" ? `Doprava ${formatCena.format(doprava)}` : "Osobní odběr"}`,
+        `Předání: ${zpusobDopravy === "doprava" ? (dopravaZdarma ? "Doprava zdarma" : `Doprava ${formatCena.format(doprava)}`) : "Osobní odběr"}`,
         ...(zpusobDopravy === "doprava" ? [`Dodací adresa: ${adresa}`, "Místo a termín rozvozu budou potvrzeny osobně."] : ["Místo odběru: Otvovice"]),
         `Celkem: ${formatCena.format(mezisoucet + doprava)}`, "", "Děkuji."
     ].join("\n");
