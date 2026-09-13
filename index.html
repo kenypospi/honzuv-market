@@ -980,6 +980,14 @@ async function nactiData() {
     // Bez aktuálních produktových dat nenabízíme staré lokální ceny.
     if (!produktyData.length) throw new Error('Aktuální ceny z Google tabulky nejsou dostupné.');
     const cenyFinal = cenyZCsv;
+
+    // Tyto dvě položky mají v dodavatelských datech cenu za kus. Pokud by byly
+    // omylem označené jako kilogramové, hmotnost balení by cenu nesmyslně snížila.
+    for (const id of ["702189", "704151"]) {
+        if (cenyFinal[id] && typeof cenyFinal[id] === "object") {
+            cenyFinal[id] = { ...cenyFinal[id], prodejniJednotka: "ks" };
+        }
+    }
     return {produkty:[...produktyMap.values()], ceny:cenyFinal, kategorie, nastaveni:nastaveniData, sekce, podkategorie};
 }
 async function nactiCsvVolitelne(url, nazev) {
@@ -1259,7 +1267,7 @@ function vykresliProdukty() {
                         <span>ID ${escapeHtml(produkt.id)}</span>
                     </div>
                     <h2>${escapeHtml(produkt.nazev)}</h2>
-                    <p class="product-description">Balení: ${escapeHtml(produkt.baleni)}${produkt.podkategorie ? ` · ${escapeHtml(produkt.podkategorie)}` : ""}</p>
+                    <p class="product-description">Balení: ${escapeHtml(produkt.baleni)}</p>
                     <div class="price-row">
                         <span class="price ${maCenu ? "" : "price-unavailable"}">
                             ${maCenu ? `${formatCena.format(zobrazenaCena)}/${escapeHtml(zobrazenaJednotka)}` : "Cena bude doplněna"}
