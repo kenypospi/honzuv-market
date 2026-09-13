@@ -854,11 +854,8 @@ window.HONZUV_MARKET_PODKATEGORIE_CSV_URL = "https://docs.google.com/spreadsheet
 const TELEFON_WHATSAPP = "420607967939";
 const CENA_DOPRAVY = 79;
 const MINIMUM_ROZVOZU = 700;
-const OBCE_ROZVOZU = ["Kralupy nad Vltavou", "Zákolany", "Buštěhrad", "Kladno", "Holubice"];
-let obecRozvozu = "";
-function chybaRozvozu(mezisoucet, obec) {
+function chybaRozvozu(mezisoucet) {
     if (Math.round(mezisoucet * 100) < MINIMUM_ROZVOZU * 100) return "Rozvoz je možný při objednávce zboží alespoň za 700 Kč. Osobní odběr v Otvovicích je zdarma a bez tohoto minima.";
-    if (!OBCE_ROZVOZU.includes(obec)) return "Pro rozvoz prosím vyberte obec z nabídky. Do dalších obcí zatím nerozvážíme.";
     return "";
 }
 const FILTR_VSE = "__vse__";
@@ -1425,8 +1422,8 @@ function vykresliKosik() {
             <strong>Způsob předání</strong>
             <label><input type="radio" name="zpusobDopravy" value="osobni" ${zpusobDopravy === "osobni" ? "checked" : ""} onchange="nastavZpusobDopravy(this.value)"> Osobní odběr v Otvovicích zdarma</label>
             <label><input type="radio" name="zpusobDopravy" value="doprava" ${zpusobDopravy === "doprava" ? "checked" : ""} onchange="nastavZpusobDopravy(this.value)"> Doprava ${formatCena.format(cenaDopravy)}</label>
-            <p>Rozvoz ve čtvrtek za 79 Kč při nákupu zboží od 700 Kč. Kralupy nad Vltavou, Zákolany, Buštěhrad, Kladno a Holubice. Jiný den pouze po domluvě.</p>
-            ${zpusobDopravy === "doprava" ? `<label for="obecRozvozu">Obec rozvozu *</label><select id="obecRozvozu" required onchange="obecRozvozu=this.value"><option value="">Vyberte obec</option>${OBCE_ROZVOZU.map(obec=>`<option ${obecRozvozu===obec?'selected':''} value="${escapeHtml(obec)}">${escapeHtml(obec)}</option>`).join('')}</select>${mezisoucet<MINIMUM_ROZVOZU?`<p role="status">Do minima pro rozvoz chybí ${formatCena.format(MINIMUM_ROZVOZU-mezisoucet)} za zboží. Můžete také zvolit osobní odběr zdarma.</p>`:''}<label class="delivery-address" for="dodaciAdresa"><span>Dodací adresa <em>*</em></span><textarea id="dodaciAdresa" rows="3" autocomplete="street-address" required placeholder="Ulice a číslo, město, PSČ" oninput="ulozDodaciAdresu(this.value)">${escapeHtml(dodaciAdresa)}</textarea></label>` : ""}
+            <p>Rozvoz ve čtvrtek za 79 Kč při nákupu zboží od 700 Kč. Místo a případně jiný den si potvrdíme osobně.</p>
+            ${zpusobDopravy === "doprava" ? `${mezisoucet<MINIMUM_ROZVOZU?`<p role="status">Do minima pro rozvoz chybí ${formatCena.format(MINIMUM_ROZVOZU-mezisoucet)} za zboží. Můžete také zvolit osobní odběr zdarma.</p>`:''}<label class="delivery-address" for="dodaciAdresa"><span>Dodací adresa <em>*</em></span><textarea id="dodaciAdresa" rows="3" autocomplete="street-address" required placeholder="Ulice a číslo, obec, PSČ" oninput="ulozDodaciAdresu(this.value)">${escapeHtml(dodaciAdresa)}</textarea></label>` : ""}
         </div>
         <div class="cart-total cart-subtotal"><span>Mezisoučet</span><span>${formatCena.format(mezisoucet)}</span></div>
         <div class="cart-total cart-subtotal"><span>Doprava</span><span>${doprava ? formatCena.format(doprava) : "Osobní odběr"}</span></div>
@@ -1452,7 +1449,7 @@ function odeslatWhatsApp() {
 
     const mezisoucet = polozky.reduce((soucet, polozka) => soucet + polozka.cena * polozka.pocet, 0);
     if (zpusobDopravy === "doprava") {
-        const chyba = chybaRozvozu(mezisoucet, obecRozvozu);
+        const chyba = chybaRozvozu(mezisoucet);
         if (chyba) { alert(chyba); return; }
     }
     const cenaDopravy = CENA_DOPRAVY;
@@ -1470,7 +1467,7 @@ function odeslatWhatsApp() {
         ]),
         "", "--------------------", `Mezisoučet: ${formatCena.format(mezisoucet)}`,
         `Předání: ${zpusobDopravy === "doprava" ? `Doprava ${formatCena.format(doprava)}` : "Osobní odběr"}`,
-        ...(zpusobDopravy === "doprava" ? [`Obec rozvozu: ${obecRozvozu}`, `Dodací adresa: ${adresa}`, "Rozvoz: čtvrtek; jiný den pouze po domluvě."] : ["Místo odběru: Otvovice"]),
+        ...(zpusobDopravy === "doprava" ? [`Dodací adresa: ${adresa}`, "Místo a termín rozvozu budou potvrzeny osobně."] : ["Místo odběru: Otvovice"]),
         `Celkem: ${formatCena.format(mezisoucet + doprava)}`, "", "Děkuji."
     ].join("\n");
     window.open(`https://wa.me/${TELEFON_WHATSAPP}?text=${encodeURIComponent(zprava)}`, "_blank", "noopener,noreferrer");
