@@ -1013,6 +1013,11 @@ async function nactiData() {
             cenyFinal[id] = { ...cenyFinal[id], prodejniJednotka: "ks" };
         }
     }
+
+    // Hovězí přední krk se prodává jako přibližně pětikilové balení.
+    if (produktyMap.has("711010")) {
+        produktyMap.set("711010", { ...produktyMap.get("711010"), baleni: "cca 5 kg" });
+    }
     return {produkty:[...produktyMap.values()], ceny:cenyFinal, kategorie, nastaveni:nastaveniData, sekce, podkategorie};
 }
 async function nactiCsvVolitelne(url, nazev) {
