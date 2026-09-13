@@ -759,15 +759,14 @@ main {
 
 </style>
     <meta name="honzuv-market-build" content="2026-08-12.7-single">
+    <link rel="stylesheet" href="market-family.css">
+    <script src="fotky-manifest.js"></script>
 </head>
 <body>
+    <div class="market-service-strip">Objednávky do úterý 17:00 <span>Odběr v Otvovicích · Rozvoz po domluvě</span></div>
     <header class="topbar">
         <a class="brand" href="#" aria-label="Honzův Market">
-            <span class="brand-mark">HM</span>
-            <span>
-                <strong>Honzův Market</strong>
-                <small>Potraviny za férové ceny</small>
-            </span>
+            <img class="market-logo" src="grafika/profilovka.png" alt="Honzův Market" width="180" height="80">
         </a>
 
         <button class="cart-button" type="button" onclick="zobrazKosik()" aria-label="Otevřít košík">
@@ -776,6 +775,16 @@ main {
     </header>
 
     <main>
+        <section class="market-welcome" aria-labelledby="marketWelcomeTitle">
+            <div class="market-welcome-photo" role="img" aria-label="Rodinný nákup potravin"></div>
+            <div class="market-welcome-copy">
+                <p class="market-eyebrow">HONZŮV MARKET</p>
+                <h1 id="marketWelcomeTitle">Objednejte<br>do úterý 17:00</h1>
+                <p>Ve středu přijímám zboží.<br>Ve čtvrtek odběr nebo rozvoz.</p>
+                <p class="market-flexible">Objednávky na jiný den po domluvě.</p>
+                <a class="market-browse" href="#nabidka">Zobrazit nabídku <span aria-hidden="true">→</span></a>
+            </div>
+        </section>
         <section id="favoritesHeroSection" class="favorites-hero" aria-label="Oblíbené produkty">
             <button id="favoritesHero" class="favorites-hero-card" type="button" aria-label="Otevřít oblíbené produkty">
                 <span class="favorites-hero-icon" aria-hidden="true">♥</span>
@@ -791,7 +800,7 @@ main {
             </div>
         </section>
 
-        <section class="toolbar" aria-label="Filtry produktů">
+        <section id="nabidka" class="toolbar" aria-label="Filtry produktů">
             <div class="filters" role="group" aria-label="Kategorie">
                 <button class="filter active" type="button" data-kategorie="Vše">Vše</button>
                 <button class="filter" type="button" data-kategorie="Akční nabídka">Akční nabídka</button>
@@ -805,6 +814,7 @@ main {
             </label>
         </section>
 
+        <p class="market-price-note">Všechny uvedené ceny jsou včetně DPH.</p>
         <div class="catalog-layout">
             <aside class="category-sidebar" aria-label="Skupiny produktů">
                 <h2>Skupiny produktů</h2>
@@ -843,6 +853,14 @@ window.HONZUV_MARKET_PODKATEGORIE_CSV_URL = "https://docs.google.com/spreadsheet
 
 const TELEFON_WHATSAPP = "420607967939";
 const CENA_DOPRAVY = 79;
+const MINIMUM_ROZVOZU = 700;
+const OBCE_ROZVOZU = ["Kralupy nad Vltavou", "Zákolany", "Buštěhrad", "Kladno", "Holubice"];
+let obecRozvozu = "";
+function chybaRozvozu(mezisoucet, obec) {
+    if (Math.round(mezisoucet * 100) < MINIMUM_ROZVOZU * 100) return "Rozvoz je možný při objednávce zboží alespoň za 700 Kč. Osobní odběr v Otvovicích je zdarma a bez tohoto minima.";
+    if (!OBCE_ROZVOZU.includes(obec)) return "Pro rozvoz prosím vyberte obec z nabídky. Do dalších obcí zatím nerozvážíme.";
+    return "";
+}
 const FILTR_VSE = "__vse__";
 const FILTR_AKCE = "__akcni_produkty__";
 const FILTR_NEJPRODAVANEJSI = "__nejprodavanejsi__";
@@ -882,6 +900,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         nastaveni = data.nastaveni;
         sekceNastaveni = data.sekce;
         podkategorieNastaveni = data.podkategorie;
+        await overFotkyProduktu();
         synchronizujKosik();
         vytvorFiltry();
         vykresliProdukty();
@@ -898,13 +917,12 @@ let sekceNastaveni = [];
 let podkategorieNastaveni = [];
 
 async function nactiData() {
-    const [produktyCsv, kategorieCsv, nastaveniCsv, sekceCsv, podkategorieCsv, lokalniCeny] = await Promise.all([
+    const [produktyCsv, kategorieCsv, nastaveniCsv, sekceCsv, podkategorieCsv] = await Promise.all([
         nactiCsvVolitelne(window.HONZUV_MARKET_PRODUKTY_CSV_URL, "Produkty a ceny"),
         nactiCsvVolitelne(window.HONZUV_MARKET_KATEGORIE_CSV_URL, "Kategorie"),
         nactiCsvVolitelne(window.HONZUV_MARKET_NASTAVENI_CSV_URL, "Nastavení"),
         nactiCsvVolitelne(window.HONZUV_MARKET_SEKCE_CSV_URL, "Sekce"),
-        nactiCsvVolitelne(window.HONZUV_MARKET_PODKATEGORIE_CSV_URL, "Podkategorie"),
-        fetch("ceny.json", { cache: "no-store" }).then(response => response.ok ? response.json() : {})
+        nactiCsvVolitelne(window.HONZUV_MARKET_PODKATEGORIE_CSV_URL, "Podkategorie")
     ]);
 
     const zakladniKatalog = Array.isArray(window.HONZUV_MARKET_KATALOG)
@@ -950,9 +968,9 @@ async function nactiData() {
         cena:p.cena, prodejniJednotka:p.prodejniJednotka, akce:p.akce, vyprodej:p.vyprodej, zobrazit:p.zobrazit,
         nejprodavanejsi:p.nejprodavanejsi, novinka:p.novinka, doporucujeme:p.doporucujeme
     }])) : { ...(window.HONZUV_MARKET_CENY || {}) };
-    // Google tabulka je hlavní zdroj. Lokální ceny jsou jen nouzová záloha,
-    // proto je musí aktuální hodnoty z CSV přepsat, ne naopak.
-    const cenyFinal = { ...(lokalniCeny || {}), ...cenyZCsv };
+    // Bez aktuálních produktových dat nenabízíme staré lokální ceny.
+    if (!produktyData.length) throw new Error('Aktuální ceny z Google tabulky nejsou dostupné.');
+    const cenyFinal = cenyZCsv;
     return {produkty:[...produktyMap.values()], ceny:cenyFinal, kategorie, nastaveni:nastaveniData, sekce, podkategorie};
 }
 async function nactiCsvVolitelne(url, nazev) {
@@ -976,6 +994,7 @@ async function nactiCsv(url) {
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const text = await response.text();
             if (!text.trim()) throw new Error("Google vrátil prázdný soubor");
+            if (/^\s*<!doctype html|^\s*<html/i.test(text)) throw new Error('Google nevrátil CSV, ale HTML stránku.');
             return rozdelCsv(text.replace(/^\uFEFF/, ""));
         } catch (error) { posledniChyba = error; }
     }
@@ -1090,7 +1109,8 @@ function rozdelCsv(text) {
     let row = [];
     let cell = "";
     let inQuotes = false;
-    const delimiter = text.includes(";") ? ";" : ",";
+    const header = text.split(/\r?\n/)[0];
+    const delimiter = header.includes(';') && !header.includes(',') ? ';' : ',';
 
     for (let i = 0; i < text.length; i += 1) {
         const znak = text[i];
@@ -1162,7 +1182,9 @@ function vytvorFiltry() {
         {sekce:"vyprodej",nazev:nastaveni.vyprodej_nazev||"Výprodej"},
         {sekce:"doporucujeme",nazev:"Doporučujeme"}
     ]).filter(s=>map[s.sekce]);
+    // Názvy a viditelnost spravovaných sekcí zůstávají řízené tabulkou.
     const buttons=[[FILTR_VSE,"Vše"],...sekce.map(s=>[map[s.sekce],s.nazev])];
+    buttons.splice(Math.min(2,buttons.length),0,[FILTR_STALA_NABIDKA,"Stálá nabídka"]);
     filtry.innerHTML=buttons.map(([v,n])=>`<button class="filter" type="button" data-kategorie="${escapeHtml(v)}">${escapeHtml(n)}</button>`).join("");
     filtry.querySelectorAll(".filter").forEach(b=>b.addEventListener("click",()=>filtrKategorie(b.dataset.kategorie)));
 
@@ -1200,9 +1222,9 @@ function vykresliProdukty() {
         const zprava = aktivniKategorie === FILTR_OBLIBENE
             ? `<div class="favorites-empty"><div class="favorites-empty-icon">♡</div><h3>Zatím nemáte žádné oblíbené produkty</h3><p>U produktu klikněte na srdíčko a uloží se vám sem pro příště.</p></div>`
             : aktivniKategorie === FILTR_AKCE
-                ? "Zatím zde není žádné akční zboží. V Google tabulce produkt označte ve sloupci Akční produkt jako Ano."
+                ? "Aktuálně zde nejsou žádné akční produkty. Podívejte se na celou nabídku."
                 : aktivniKategorie === FILTR_VYPRODEJ
-                    ? "Zatím zde není žádný produkt ve výprodeji. V Google tabulce jej označte ve sloupci Výprodej jako Ano."
+                    ? "Aktuálně zde nejsou žádné produkty v doprodeji."
                     : "Žádný produkt neodpovídá hledání.";
         obsah.innerHTML = `<div class="empty-state">${zprava}</div>`;
         return;
@@ -1220,7 +1242,7 @@ function vykresliProdukty() {
         const pocetVKosiku = mnozstviProduktuVKosiku(produkt.id);
         obsah.insertAdjacentHTML("beforeend", `
             <article class="card">
-                <img src="Fotky/${encodeURIComponent(produkt.id)}.jpg?v=20260906-3" alt="${escapeHtml(produkt.nazev)}" class="product-photo" onerror="nahradFotkuProduktu(this, '${escapeJs(produkt.id)}', '${escapeJs(produkt.fotkaSkupiny)}')" loading="lazy">
+                <img src="${escapeHtml(window.HONZUV_MARKET_FOTKY[produkt.id])}" alt="${escapeHtml(produkt.nazev)}" class="product-photo" onerror="this.closest('.card')?.remove()" loading="lazy">
                 <div class="card-body">
                     <div class="product-meta">
                         <span class="tag">${escapeHtml(zobrazNazevKategorie(produkt.kategorie))}</span>
@@ -1321,7 +1343,8 @@ function nahradFotkuProduktu(obrazek, idProduktu, souborSkupiny) {
         obrazek.src = `Fotky/${encodeURIComponent(idProduktu)}.png?v=20260906-3`;
         return;
     }
-    nahradFotkuSkupiny(obrazek, souborSkupiny);
+    // Nabídka obsahuje pouze skutečné produktové fotografie, ne obrázky skupin.
+    obrazek.closest('.card')?.remove();
 }
 
 function vytvorNahledBezFotky() {
@@ -1379,7 +1402,7 @@ function vykresliKosik() {
     }
 
     const mezisoucet = polozky.reduce((soucet, polozka) => soucet + polozka.cena * polozka.pocet, 0);
-    const cenaDopravy = Number(nastaveni.cena_dopravy) || CENA_DOPRAVY;
+    const cenaDopravy = CENA_DOPRAVY;
     const doprava = zpusobDopravy === "doprava" ? cenaDopravy : 0;
     polozky.forEach(({ produkt, pocet: mnozstvi, index, cena }) => {
         obsahKosiku.insertAdjacentHTML("beforeend", `
@@ -1400,9 +1423,10 @@ function vykresliKosik() {
     obsahKosiku.insertAdjacentHTML("beforeend", `
         <div class="delivery-choice">
             <strong>Způsob předání</strong>
-            <label><input type="radio" name="zpusobDopravy" value="osobni" ${zpusobDopravy === "osobni" ? "checked" : ""} onchange="nastavZpusobDopravy(this.value)"> Osobní odběr</label>
+            <label><input type="radio" name="zpusobDopravy" value="osobni" ${zpusobDopravy === "osobni" ? "checked" : ""} onchange="nastavZpusobDopravy(this.value)"> Osobní odběr v Otvovicích zdarma</label>
             <label><input type="radio" name="zpusobDopravy" value="doprava" ${zpusobDopravy === "doprava" ? "checked" : ""} onchange="nastavZpusobDopravy(this.value)"> Doprava ${formatCena.format(cenaDopravy)}</label>
-            ${zpusobDopravy === "doprava" ? `<label class="delivery-address" for="dodaciAdresa"><span>Dodací adresa <em>*</em></span><textarea id="dodaciAdresa" rows="3" autocomplete="street-address" required placeholder="Ulice a číslo, město, PSČ" oninput="ulozDodaciAdresu(this.value)">${escapeHtml(dodaciAdresa)}</textarea></label>` : ""}
+            <p>Rozvoz ve čtvrtek za 79 Kč při nákupu zboží od 700 Kč. Kralupy nad Vltavou, Zákolany, Buštěhrad, Kladno a Holubice. Jiný den pouze po domluvě.</p>
+            ${zpusobDopravy === "doprava" ? `<label for="obecRozvozu">Obec rozvozu *</label><select id="obecRozvozu" required onchange="obecRozvozu=this.value"><option value="">Vyberte obec</option>${OBCE_ROZVOZU.map(obec=>`<option ${obecRozvozu===obec?'selected':''} value="${escapeHtml(obec)}">${escapeHtml(obec)}</option>`).join('')}</select>${mezisoucet<MINIMUM_ROZVOZU?`<p role="status">Do minima pro rozvoz chybí ${formatCena.format(MINIMUM_ROZVOZU-mezisoucet)} za zboží. Můžete také zvolit osobní odběr zdarma.</p>`:''}<label class="delivery-address" for="dodaciAdresa"><span>Dodací adresa <em>*</em></span><textarea id="dodaciAdresa" rows="3" autocomplete="street-address" required placeholder="Ulice a číslo, město, PSČ" oninput="ulozDodaciAdresu(this.value)">${escapeHtml(dodaciAdresa)}</textarea></label>` : ""}
         </div>
         <div class="cart-total cart-subtotal"><span>Mezisoučet</span><span>${formatCena.format(mezisoucet)}</span></div>
         <div class="cart-total cart-subtotal"><span>Doprava</span><span>${doprava ? formatCena.format(doprava) : "Osobní odběr"}</span></div>
@@ -1411,12 +1435,14 @@ function vykresliKosik() {
 }
 
 function ulozDodaciAdresu(adresa) { dodaciAdresa = adresa; }
-function uberProdukt(index) { if (kosik[index].pocet > 1) kosik[index].pocet -= 1; else kosik.splice(index, 1); ulozKosik(); vykresliKosik(); vykresliProdukty(); }
-function pridejKus(index) { kosik[index].pocet += 1; ulozKosik(); vykresliKosik(); vykresliProdukty(); }
+function uberProdukt(index) { if (!kosik[index]) return; if (kosik[index].pocet > 1) kosik[index].pocet -= 1; else kosik.splice(index, 1); ulozKosik(); vykresliKosik(); vykresliProdukty(); }
+function pridejKus(index) { if (!kosik[index]) return; kosik[index].pocet += 1; ulozKosik(); vykresliKosik(); vykresliProdukty(); }
 function vyprazdniKosik() { kosik = []; ulozKosik(); vykresliKosik(); vykresliProdukty(); }
 function nastavZpusobDopravy(hodnota) { zpusobDopravy = hodnota === "doprava" ? "doprava" : "osobni"; localStorage.setItem("honzuvMarketDoprava", zpusobDopravy); vykresliKosik(); }
-function zobrazKosik() { document.getElementById("prekryvKosiku").hidden = false; document.getElementById("oknoKosiku").hidden = false; }
-function zavriKosik() { document.getElementById("prekryvKosiku").hidden = true; document.getElementById("oknoKosiku").hidden = true; }
+let predchoziFocus = null;
+function zobrazKosik() { predchoziFocus = document.activeElement; document.getElementById("prekryvKosiku").hidden = false; document.getElementById("oknoKosiku").hidden = false; document.querySelector('#oknoKosiku .icon-button').focus(); }
+function zavriKosik() { document.getElementById("prekryvKosiku").hidden = true; document.getElementById("oknoKosiku").hidden = true; predchoziFocus?.focus(); }
+document.addEventListener('keydown', event => { const dialog = document.getElementById('oknoKosiku'); if (!dialog || dialog.hidden) return; if (event.key === 'Escape') zavriKosik(); if (event.key === 'Tab') { const nodes = [...dialog.querySelectorAll('button,input,textarea,a')].filter(n=>!n.disabled && n.getClientRects().length); const first = nodes[0], last = nodes[nodes.length-1]; if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); } else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); } } });
 
 function odeslatWhatsApp() {
     const polozky = polozkyKosiku();
@@ -1425,7 +1451,11 @@ function odeslatWhatsApp() {
     if (zpusobDopravy === "doprava" && !adresa) { alert("Pro dopravu prosím vyplňte dodací adresu."); document.getElementById("dodaciAdresa")?.focus(); return; }
 
     const mezisoucet = polozky.reduce((soucet, polozka) => soucet + polozka.cena * polozka.pocet, 0);
-    const cenaDopravy = Number(nastaveni.cena_dopravy) || CENA_DOPRAVY;
+    if (zpusobDopravy === "doprava") {
+        const chyba = chybaRozvozu(mezisoucet, obecRozvozu);
+        if (chyba) { alert(chyba); return; }
+    }
+    const cenaDopravy = CENA_DOPRAVY;
     const doprava = zpusobDopravy === "doprava" ? cenaDopravy : 0;
     const zprava = [
         "Dobrý den,", "", "objednávám:", "",
@@ -1440,10 +1470,10 @@ function odeslatWhatsApp() {
         ]),
         "", "--------------------", `Mezisoučet: ${formatCena.format(mezisoucet)}`,
         `Předání: ${zpusobDopravy === "doprava" ? `Doprava ${formatCena.format(doprava)}` : "Osobní odběr"}`,
-        ...(zpusobDopravy === "doprava" ? [`Dodací adresa: ${adresa}`] : []),
+        ...(zpusobDopravy === "doprava" ? [`Obec rozvozu: ${obecRozvozu}`, `Dodací adresa: ${adresa}`, "Rozvoz: čtvrtek; jiný den pouze po domluvě."] : ["Místo odběru: Otvovice"]),
         `Celkem: ${formatCena.format(mezisoucet + doprava)}`, "", "Děkuji."
     ].join("\n");
-    window.open(`https://wa.me/${TELEFON_WHATSAPP}?text=${encodeURIComponent(zprava)}`, "_blank");
+    window.open(`https://wa.me/${TELEFON_WHATSAPP}?text=${encodeURIComponent(zprava)}`, "_blank", "noopener,noreferrer");
 }
 
 function polozkyKosiku() {
@@ -1573,12 +1603,13 @@ function jeStalaNabidka(id) {
 
 function jeProduktViditelny(id) {
     const hodnota = ceny[String(id)];
-    return Number.isFinite(cenaProduktu(id))
+    return Number.isFinite(cenaProduktu(id)) && cenaProduktu(id) > 0
+        && Object.prototype.hasOwnProperty.call(window.HONZUV_MARKET_FOTKY || {}, String(id))
         && (typeof hodnota !== "object" || hodnota?.zobrazit !== false);
 }
 
-function ulozKosik() { localStorage.setItem("honzuvMarketKosik", JSON.stringify(kosik)); }
-function nactiKosik() { try { return JSON.parse(localStorage.getItem("honzuvMarketKosik")) || []; } catch { return []; } }
+function ulozKosik() { try { localStorage.setItem("honzuvMarketKosik", JSON.stringify(kosik)); } catch(error) { console.warn('Košík nelze uložit do prohlížeče.', error); } }
+function nactiKosik() { try { const data=JSON.parse(localStorage.getItem("honzuvMarketKosik")); return Array.isArray(data) ? data.filter(p=>p && typeof p==='object') : []; } catch { return []; } }
 function nactiZpusobDopravy() { return localStorage.getItem("honzuvMarketDoprava") === "doprava" ? "doprava" : "osobni"; }
 function synchronizujKosik() { kosik = kosik.map(polozka => ({ id: String(polozka.id), pocet: Number(polozka.pocet) || 0 })).filter(polozka => polozka.pocet > 0 && produkty.some(produkt => produkt.id === polozka.id) && Number.isFinite(cenaProduktu(polozka.id))); ulozKosik(); }
 function escapeHtml(hodnota) { return String(hodnota ?? "").replace(/[&<>'\"]/g, znak => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[znak]); }
