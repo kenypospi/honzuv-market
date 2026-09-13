@@ -973,6 +973,18 @@ async function nactiData() {
         });
     }
 
+    // Ručně doplněná novinka, než bude k dispozici v exportu hlavního katalogu.
+    if (!produktyMap.has("702812")) {
+        produktyMap.set("702812", {
+            id: "702812",
+            nazev: "Greeta – bílý sýr typu feta v nálevu Bergader",
+            baleni: "1 x 800 g",
+            kategorie: "Mléčné výrobky",
+            podkategorie: "Sýry a mléčné výrobky",
+            fotkaSkupiny: "foto-mlecne-vyrobky.png"
+        });
+    }
+
     const cenyZCsv = produktyData.length ? Object.fromEntries(produktyData.map(p => [String(p.id), {
         cena:p.cena, prodejniJednotka:p.prodejniJednotka, akce:p.akce, vyprodej:p.vyprodej, zobrazit:p.zobrazit,
         nejprodavanejsi:p.nejprodavanejsi, novinka:p.novinka, doporucujeme:p.doporucujeme
@@ -980,6 +992,19 @@ async function nactiData() {
     // Bez aktuálních produktových dat nenabízíme staré lokální ceny.
     if (!produktyData.length) throw new Error('Aktuální ceny z Google tabulky nejsou dostupné.');
     const cenyFinal = cenyZCsv;
+
+    if (!cenyFinal["702812"] || !Number.isFinite(Number(cenyFinal["702812"]?.cena))) {
+        cenyFinal["702812"] = {
+            cena: 200.48,
+            prodejniJednotka: "ks",
+            akce: false,
+            vyprodej: false,
+            zobrazit: true,
+            nejprodavanejsi: false,
+            novinka: true,
+            doporucujeme: false
+        };
+    }
 
     // Tyto dvě položky mají v dodavatelských datech cenu za kus. Pokud by byly
     // omylem označené jako kilogramové, hmotnost balení by cenu nesmyslně snížila.
