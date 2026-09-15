@@ -1022,6 +1022,17 @@ async function nactiData() {
         }
     }
 
+    // Schwarzwaldská šunka 726100: 134,90 Kč bez DPH za celé balení.
+    // Potraviny mají 12% DPH, proto je koncová cena 151,09 Kč / balení.
+    if (cenyFinal["726100"] && typeof cenyFinal["726100"] === "object") {
+        cenyFinal["726100"] = {
+            ...cenyFinal["726100"],
+            cena: 151.088,
+            prodejniJednotka: "bal.",
+            zobrazit: true
+        };
+    }
+
     // Hovězí přední krk se prodává jako přibližně pětikilové balení.
     if (produktyMap.has("711010")) {
         produktyMap.set("711010", { ...produktyMap.get("711010"), baleni: "cca 5 kg" });
