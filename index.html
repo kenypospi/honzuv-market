@@ -1302,8 +1302,8 @@ function vykresliProdukty() {
         const jednotka = prodejniJednotkaProduktu(produkt.id);
         const jeZmrzlina = jeZmrzlinaPoKartonu(produkt.id);
         const jeBaleniKusu = jeProdejPoBaleniZKusu(produkt.id);
-        const zobrazenaCena = jeZmrzlina ? cenaZaKusZmrzliny(produkt.id) : cenaZaJednotku;
-        const zobrazenaJednotka = jeZmrzlina || jeBaleniKusu ? "ks" : jednotka;
+        const zobrazenaCena = jeZmrzlina ? cenaZaKusZmrzliny(produkt.id) : jeBaleniKusu ? cena : cenaZaJednotku;
+        const zobrazenaJednotka = jeZmrzlina ? "ks" : jeBaleniKusu ? "bal." : jednotka;
         const index = produkty.findIndex(polozka => polozka.id === produkt.id);
         const maCenu = Number.isFinite(cena);
         const pocetVKosiku = mnozstviProduktuVKosiku(produkt.id);
@@ -1321,7 +1321,7 @@ function vykresliProdukty() {
                     <div class="price-row">
                         <span class="price ${maCenu ? "" : "price-unavailable"}">
                             ${maCenu ? `${formatCena.format(zobrazenaCena)}/${escapeHtml(zobrazenaJednotka)}` : "Cena bude doplněna"}
-                            <small>${maCenu && jeZmrzlina ? `${pocetKusuVBaleni(produkt.baleni)} ks → ${formatCena.format(cena)}/karton` : maCenu && jeBaleniKusu ? `${pocetKusuVBaleni(produkt.baleni)} ks → ${formatCena.format(cena)}/bal.` : maCenu && jednotka === "kg" ? `${escapeHtml(produkt.baleni)} → ${formatCena.format(cena)}/bal.` : ""}</small>
+                            <small>${maCenu && jeZmrzlina ? `${pocetKusuVBaleni(produkt.baleni)} ks → ${formatCena.format(cena)}/karton` : maCenu && jeBaleniKusu ? `${pocetKusuVBaleni(produkt.baleni)} ks v balení · ${formatCena.format(cenaZaJednotku)}/ks` : maCenu && jednotka === "kg" ? `${escapeHtml(produkt.baleni)} → ${formatCena.format(cena)}/bal.` : ""}</small>
                         </span>
                         <div class="product-actions">
                             ${pocetVKosiku > 0 ? `<div class="card-quantity" aria-label="Množství v košíku"><button type="button" onclick="zmenMnozstviProduktu('${escapeJs(produkt.id)}',-1)">−</button><strong>${pocetVKosiku}</strong><button type="button" onclick="zmenMnozstviProduktu('${escapeJs(produkt.id)}',1)">+</button></div>` : `<button class="add-button" type="button" onclick="pridejDoKosiku(${index}, this)" ${maCenu ? "" : "disabled"}>${maCenu ? "Přidat" : "Není skladem"}</button>`}
