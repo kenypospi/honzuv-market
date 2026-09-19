@@ -1006,8 +1006,8 @@ async function nactiData() {
         };
     }
 
-    // V sekci Novinky mají být pouze avokádo, káva Lavazza a Kitl.
-    const novinkyIds = new Set(["400202", "612028", "640211"]);
+    // Ručně určené produkty pro sekci Novinky.
+    const novinkyIds = new Set(["400202", "612028", "640211", "724101", "725651"]);
     for (const [id, hodnota] of Object.entries(cenyFinal)) {
         if (hodnota && typeof hodnota === "object") {
             cenyFinal[id] = { ...hodnota, novinka: novinkyIds.has(id) };

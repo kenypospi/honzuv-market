@@ -6,4 +6,6 @@ window.HONZUV_MARKET_FOTKY["709026"]="Fotky/709026.jpg";
 window.HONZUV_MARKET_FOTKY["400202"]="Fotky/400202.jpg";
 window.HONZUV_MARKET_FOTKY["612028"]="Fotky/612028.jpg";
 window.HONZUV_MARKET_FOTKY["640211"]="Fotky/640211.jpg";
+window.HONZUV_MARKET_FOTKY["724101"]="Fotky/724101.jpg";
+window.HONZUV_MARKET_FOTKY["725651"]="Fotky/725651.jpg";
 async function overFotkyProduktu(){}
