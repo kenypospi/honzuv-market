@@ -1302,6 +1302,7 @@ function vykresliProdukty() {
         const jednotka = prodejniJednotkaProduktu(produkt.id);
         const jeZmrzlina = jeZmrzlinaPoKartonu(produkt.id);
         const jeBaleniKusu = jeProdejPoBaleniZKusu(produkt.id);
+        const kusuVProdejnimBaleni = pocetKusuVProdejnimBaleni(produkt.id);
         const zobrazenaCena = jeZmrzlina ? cenaZaKusZmrzliny(produkt.id) : jeBaleniKusu ? cena : cenaZaJednotku;
         const zobrazenaJednotka = jeZmrzlina ? "ks" : jeBaleniKusu ? "bal." : jednotka;
         const index = produkty.findIndex(polozka => polozka.id === produkt.id);
@@ -1321,7 +1322,7 @@ function vykresliProdukty() {
                     <div class="price-row">
                         <span class="price ${maCenu ? "" : "price-unavailable"}">
                             ${maCenu ? `${formatCena.format(zobrazenaCena)}/${escapeHtml(zobrazenaJednotka)}` : "Cena bude doplněna"}
-                            <small>${maCenu && jeZmrzlina ? `${pocetKusuVBaleni(produkt.baleni)} ks → ${formatCena.format(cena)}/karton` : maCenu && jeBaleniKusu ? `${pocetKusuVBaleni(produkt.baleni)} ks v balení · ${formatCena.format(cenaZaJednotku)}/ks` : maCenu && jednotka === "kg" ? `${escapeHtml(produkt.baleni)} → ${formatCena.format(cena)}/bal.` : ""}</small>
+                            <small>${maCenu && jeZmrzlina ? `${pocetKusuVBaleni(produkt.baleni)} ks → ${formatCena.format(cena)}/karton` : maCenu && jeBaleniKusu ? `${kusuVProdejnimBaleni} ks v balení · ${formatCena.format(cena / kusuVProdejnimBaleni)}/ks` : maCenu && jednotka === "kg" ? `${escapeHtml(produkt.baleni)} → ${formatCena.format(cena)}/bal.` : ""}</small>
                         </span>
                         <div class="product-actions">
                             ${pocetVKosiku > 0 ? `<div class="card-quantity" aria-label="Množství v košíku"><button type="button" onclick="zmenMnozstviProduktu('${escapeJs(produkt.id)}',-1)">−</button><strong>${pocetVKosiku}</strong><button type="button" onclick="zmenMnozstviProduktu('${escapeJs(produkt.id)}',1)">+</button></div>` : `<button class="add-button" type="button" onclick="pridejDoKosiku(${index}, this)" ${maCenu ? "" : "disabled"}>${maCenu ? "Přidat" : "Není skladem"}</button>`}
@@ -1595,7 +1596,22 @@ function jeZmrzlinaPoKartonu(id) {
 }
 
 function jeProdejPoBaleniZKusu(id) {
-    return String(id) === "704151";
+    return Object.prototype.hasOwnProperty.call(PRODEJ_PO_BALENI, String(id));
+}
+
+const PRODEJ_PO_BALENI = {
+    "704151": { nasobekCeny: 10, kusu: 10 },
+    "742501": { nasobekCeny: 5, kusu: 5 },
+    "742502": { nasobekCeny: 5, kusu: 5 },
+    "742503": { nasobekCeny: 5, kusu: 5 },
+    "742507": { nasobekCeny: 5, kusu: 5 },
+    "742525": { nasobekCeny: 1, kusu: 2 },
+    "742526": { nasobekCeny: 1, kusu: 2 },
+    "742527": { nasobekCeny: 1, kusu: 2 }
+};
+
+function pocetKusuVProdejnimBaleni(id) {
+    return PRODEJ_PO_BALENI[String(id)]?.kusu || 1;
 }
 
 function pocetKusuVBaleni(baleni) {
@@ -1633,9 +1649,13 @@ function cenaProduktu(id) {
     const cenaZaJednotku = typeof hodnota === "number" ? hodnota : Number(hodnota?.cena);
     if (!Number.isFinite(cenaZaJednotku)) return NaN;
 
-    if (jeZmrzlinaPoKartonu(id) || jeProdejPoBaleniZKusu(id)) {
+    if (jeZmrzlinaPoKartonu(id)) {
         const produkt = produkty.find(p => p.id === String(id));
         return cenaZaJednotku * pocetKusuVBaleni(produkt?.baleni);
+    }
+
+    if (jeProdejPoBaleniZKusu(id)) {
+        return cenaZaJednotku * (PRODEJ_PO_BALENI[String(id)]?.nasobekCeny || 1);
     }
 
     if (prodejniJednotkaProduktu(id) !== "kg") return cenaZaJednotku;
