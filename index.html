@@ -1065,6 +1065,23 @@ async function nactiData() {
         zobrazit: true
     };
 
+    // Flank steak 208059: 355,90 Kč bez DPH, tedy 398,61 Kč včetně 12% DPH.
+    cenyFinal["208059"] = {
+        ...(cenyFinal["208059"] || {}),
+        cena: 398.608,
+        prodejniJednotka: "kg",
+        zobrazit: true
+    };
+    if (produktyMap.has("208059")) {
+        produktyMap.set("208059", {
+            ...produktyMap.get("208059"),
+            kategorie: "Sous-vide výrobky",
+            podkategorie: "Sous-vide výrobky",
+            popis: "Mražený výrobek",
+            fotkaSkupiny: "foto-sous-vide-vyrobky.png"
+        });
+    }
+
     // Hovězí přední krk se prodává jako přibližně pětikilové balení.
     if (produktyMap.has("711010")) {
         produktyMap.set("711010", { ...produktyMap.get("711010"), baleni: "cca 5 kg" });
@@ -1360,6 +1377,7 @@ function vykresliProdukty() {
                     </div>
                     <h2>${escapeHtml(produkt.nazev)}</h2>
                     <p class="product-description">Balení: ${escapeHtml(produkt.baleni)}</p>
+                    ${produkt.popis ? `<p class="product-description">${escapeHtml(produkt.popis)}</p>` : ""}
                     <div class="price-row">
                         <span class="price ${maCenu ? "" : "price-unavailable"}">
                             ${maCenu ? `${formatCena.format(zobrazenaCena)}/${escapeHtml(zobrazenaJednotka)}` : "Cena bude doplněna"}
