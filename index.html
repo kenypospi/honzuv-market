@@ -1033,6 +1033,14 @@ async function nactiData() {
         };
     }
 
+    // Vepřová panenská svíčková 261009: pevná koncová cena včetně DPH.
+    cenyFinal["261009"] = {
+        ...(cenyFinal["261009"] || {}),
+        cena: 149.9,
+        prodejniJednotka: "kg",
+        zobrazit: true
+    };
+
     // Hovězí přední krk se prodává jako přibližně pětikilové balení.
     if (produktyMap.has("711010")) {
         produktyMap.set("711010", { ...produktyMap.get("711010"), baleni: "cca 5 kg" });
