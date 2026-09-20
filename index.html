@@ -1057,6 +1057,14 @@ async function nactiData() {
         zobrazit: true
     };
 
+    // Telecí váleček 712023: pevná koncová cena včetně DPH.
+    cenyFinal["712023"] = {
+        ...(cenyFinal["712023"] || {}),
+        cena: 429.9,
+        prodejniJednotka: "kg",
+        zobrazit: true
+    };
+
     // Hovězí přední krk se prodává jako přibližně pětikilové balení.
     if (produktyMap.has("711010")) {
         produktyMap.set("711010", { ...produktyMap.get("711010"), baleni: "cca 5 kg" });
