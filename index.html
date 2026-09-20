@@ -1163,6 +1163,10 @@ async function nactiData() {
         prodejniJednotka: "kg",
         zobrazit: true
     };
+    // Jar Expert tablety 850608: koncová cena 3,99 Kč za kus, prodej pouze po balení 140 ks.
+    cenyFinal["850608"] = { ...(cenyFinal["850608"] || {}), cena: 3.99, prodejniJednotka: "ks", zobrazit: true };
+    window.HONZUV_MARKET_FOTKY["850608"] = "https://officeocz.vshcdn.net/galerie/1_506177/tablety-do-mycky-jar-professional-citron-140-ks-original.jpg";
+
     window.HONZUV_MARKET_FOTKY["733454"] = "https://cdn.myshoptet.com/usr/www.bossfood.cz/user/shop/big/73731_sauvignon--pozdni-sber--hanzel-6-x-0-75-l.jpg?ff=1&x=1024&y=768&q=85&ts=668f8795&sg=161563f2";
 window.HONZUV_MARKET_FOTKY["737010"] = "https://cdn.myshoptet.com/usr/www.bossfood.cz/user/shop/big/17650-1_prosecco-frizzante-doc-parol-vini-6-x-0-75-l.jpg?ff=1&x=1024&y=768&q=85&ts=668fc979&sg=161563f2";
 window.HONZUV_MARKET_FOTKY["737009"] = "https://cdn.myshoptet.com/usr/www.bossfood.cz/user/shop/big/17173-1_prosecco-spumante-bosa-brut-doc-parol-vini-6-x-0-75-l.jpg?ff=1&x=1024&y=768&q=85&ts=668fcb97&sg=161563f2";
@@ -1762,6 +1766,7 @@ function jeProdejPoBaleniZKusu(id) {
 }
 
 const PRODEJ_PO_BALENI = {
+    "850608": { nasobekCeny: 140, kusu: 140 },
     "702189": { nasobekCeny: 35, kusu: 35 },
     "704151": { nasobekCeny: 10, kusu: 10 },
     "337101": { nasobekCeny: 90, kusu: 90 },
