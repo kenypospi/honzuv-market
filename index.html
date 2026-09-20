@@ -946,7 +946,7 @@ async function nactiData() {
     const zakladniKatalog = Array.isArray(window.HONZUV_MARKET_KATALOG)
         ? window.HONZUV_MARKET_KATALOG
         : await (async () => {
-            const response = await fetch("katalog.json");
+            const response = await fetch("on");
             if (!response.ok) throw new Error("Katalog se nepodařilo načíst.");
             return response.json();
         })();
