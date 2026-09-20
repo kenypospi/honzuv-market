@@ -1007,7 +1007,7 @@ async function nactiData() {
     }
 
     // Ručně určené produkty pro sekci Novinky.
-    const novinkyIds = new Set(["400202", "612028", "640211", "724101", "725651"]);
+    const novinkyIds = new Set(["400202", "612028", "640211", "724101", "725651", "733454", "737010", "737009", "737017", "735018", "736025"]);
     for (const [id, hodnota] of Object.entries(cenyFinal)) {
         if (hodnota && typeof hodnota === "object") {
             cenyFinal[id] = { ...hodnota, novinka: novinkyIds.has(id) };
@@ -1117,6 +1117,53 @@ async function nactiData() {
             kategorie: "Sous-vide výrobky",
             podkategorie: "Sous-vide výrobky",
             popis: "Chlazený výrobek",
+            fotkaSkupiny: "foto-sous-vide-vyrobky.png"
+        });
+    }
+
+    // Nová vína: ceny jsou za jednu lahev a zahrnují 21% DPH.
+    const novaVina = {
+        "733454": { cena: 193.48, nazev: "Sauvignon, pozdní sběr, Hanzel" },
+        "737010": { cena: 169.28, nazev: "Prosecco Frizzante DOC Parol Vini" },
+        "737009": { cena: 217.68, nazev: "Prosecco Spumante Bosa Brut DOC" },
+        "737017": { cena: 229.78, nazev: "Prosecco Spumante Rosé Millesimato Brut DOP" },
+        "735018": { cena: 145.08, nazev: "Pinot Grigio delle Venezie DOC" },
+        "736025": { cena: 181.38, nazev: "Primitivo Salento IGP" }
+    };
+    for (const [id, vino] of Object.entries(novaVina)) {
+        cenyFinal[id] = {
+            ...(cenyFinal[id] || {}),
+            cena: vino.cena,
+            prodejniJednotka: "ks",
+            zobrazit: true,
+            novinka: true
+        };
+        if (produktyMap.has(id)) {
+            produktyMap.set(id, {
+                ...produktyMap.get(id),
+                nazev: vino.nazev,
+                kategorie: "Nápoje",
+                podkategorie: "Alkoholické nápoje",
+                fotkaSkupiny: "foto-napoje.png"
+            });
+        }
+    }
+
+    // Kachní stehna 709305: 224,90 Kč bez DPH, tedy 251,89 Kč včetně 12% DPH.
+    cenyFinal["709305"] = {
+        ...(cenyFinal["709305"] || {}),
+        cena: 251.89,
+        prodejniJednotka: "kg",
+        zobrazit: true
+    };
+    window.HONZUV_MARKET_FOTKY["709305"] = "https://cdn.myshoptet.com/usr/www.bossfood.cz/user/shop/big/5419_kachni-stehna-mala-konfitovana-6-ks-sous-vide-banquet-cca-1-5-kg.jpg?ff=1&x=1024&y=768&q=85&ts=6385c7d3&sg=161563f2";
+    if (produktyMap.has("709305")) {
+        produktyMap.set("709305", {
+            ...produktyMap.get("709305"),
+            nazev: "Kachní stehna konfitovaná malá 6 ks sous-vide",
+            kategorie: "Sous-vide výrobky",
+            podkategorie: "Sous-vide výrobky",
+            popis: "Chlazený výrobek · balení cca 1,5 kg",
             fotkaSkupiny: "foto-sous-vide-vyrobky.png"
         });
     }
@@ -1706,7 +1753,13 @@ const PRODEJ_PO_BALENI = {
     "742507": { nasobekCeny: 20, kusu: 20 },
     "742525": { nasobekCeny: 8, kusu: 16 },
     "742526": { nasobekCeny: 8, kusu: 16 },
-    "742527": { nasobekCeny: 8, kusu: 16 }
+    "742527": { nasobekCeny: 8, kusu: 16 },
+    "733454": { nasobekCeny: 6, kusu: 6 },
+    "737010": { nasobekCeny: 6, kusu: 6 },
+    "737009": { nasobekCeny: 6, kusu: 6 },
+    "737017": { nasobekCeny: 6, kusu: 6 },
+    "735018": { nasobekCeny: 6, kusu: 6 },
+    "736025": { nasobekCeny: 6, kusu: 6 }
 };
 
 function pocetKusuVProdejnimBaleni(id) {
