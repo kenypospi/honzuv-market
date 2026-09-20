@@ -904,6 +904,8 @@ const formatCena = new Intl.NumberFormat("cs-CZ", {
     maximumFractionDigits: 2
 });
 
+function zaokrouhliNaCeleKoruny(cena) { return Math.round((Number(cena) || 0) + Number.EPSILON); }
+
 document.addEventListener("DOMContentLoaded", async () => {
     pridejKontaktDoZahlavi();
     document.getElementById("hledat").addEventListener("input", vyhledatProdukty);
@@ -1625,7 +1627,7 @@ function vykresliKosik() {
     const pocet = polozky.reduce((soucet, polozka) => soucet + polozka.pocet, 0);
     document.getElementById("pocetKosik").textContent = pocet;
     const hodnotaKosiku = polozky.reduce((soucet, polozka) => soucet + polozka.cena * polozka.pocet, 0);
-    document.getElementById("kosikHodnota").textContent = formatCena.format(hodnotaKosiku);
+    document.getElementById("kosikHodnota").textContent = formatCena.format(zaokrouhliNaCeleKoruny(hodnotaKosiku));
 
     const vstupAdresy = document.getElementById("dodaciAdresa");
     if (vstupAdresy) dodaciAdresa = vstupAdresy.value;
@@ -1639,6 +1641,9 @@ function vykresliKosik() {
     const cenaDopravy = CENA_DOPRAVY;
     const dopravaZdarma = mezisoucet >= DOPRAVA_ZDARMA_OD;
     const doprava = zpusobDopravy === "doprava" && !dopravaZdarma ? cenaDopravy : 0;
+    const celkemPredZaokrouhlenim = mezisoucet + doprava;
+    const celkemZaokrouhlene = zaokrouhliNaCeleKoruny(celkemPredZaokrouhlenim);
+    const zaokrouhleni = celkemZaokrouhlene - celkemPredZaokrouhlenim;
     polozky.forEach(({ produkt, pocet: mnozstvi, index, cena }) => {
         obsahKosiku.insertAdjacentHTML("beforeend", `
             <div class="cart-item">
@@ -1665,7 +1670,8 @@ function vykresliKosik() {
         </div>
         <div class="cart-total cart-subtotal"><span>Mezisoučet</span><span>${formatCena.format(mezisoucet)}</span></div>
         <div class="cart-total cart-subtotal"><span>Doprava</span><span>${zpusobDopravy === "doprava" ? (dopravaZdarma ? "Zdarma" : formatCena.format(doprava)) : "Osobní odběr"}</span></div>
-        <div class="cart-total"><span>Celkem</span><span>${formatCena.format(mezisoucet + doprava)}</span></div>
+        ${Math.abs(zaokrouhleni) >= 0.005 ? `<div class="cart-total cart-subtotal"><span>Zaokrouhlení</span><span>${zaokrouhleni > 0 ? "+" : "−"}${formatCena.format(Math.abs(zaokrouhleni))}</span></div>` : ""}
+        <div class="cart-total"><span>Celkem</span><span>${formatCena.format(celkemZaokrouhlene)}</span></div>
     `);
 }
 
@@ -1713,7 +1719,7 @@ function odeslatWhatsApp() {
         "", "--------------------", `Mezisoučet: ${formatCena.format(mezisoucet)}`,
         `Předání: ${zpusobDopravy === "doprava" ? (dopravaZdarma ? "Doprava zdarma" : `Doprava ${formatCena.format(doprava)}`) : "Osobní odběr"}`,
         ...(zpusobDopravy === "doprava" ? [`Dodací adresa: ${adresa}`, "Místo a termín rozvozu budou potvrzeny osobně."] : ["Místo odběru: Otvovice"]),
-        `Celkem: ${formatCena.format(mezisoucet + doprava)}`, "", "Děkuji."
+        `Celkem: ${formatCena.format(zaokrouhliNaCeleKoruny(mezisoucet + doprava))}`, "", "Děkuji."
     ].join("\n");
     window.open(`https://wa.me/${TELEFON_WHATSAPP}?text=${encodeURIComponent(zprava)}`, "_blank", "noopener,noreferrer");
 }
