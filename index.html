@@ -1083,6 +1083,25 @@ async function nactiData() {
         });
     }
 
+    // Trhané hovězí maso 709053: 296,90 Kč bez DPH, tedy 332,53 Kč včetně 12% DPH.
+    cenyFinal["709053"] = {
+        ...(cenyFinal["709053"] || {}),
+        cena: 332.528,
+        prodejniJednotka: "kg",
+        zobrazit: true
+    };
+    window.HONZUV_MARKET_FOTKY["709053"] = "https://cdn.myshoptet.com/usr/www.bossfood.cz/user/shop/big/5044_trhane-hovezi-maso-sous-vide-banquet-cca-1-1-kg.jpg?ff=1&x=1024&y=768&q=85&ts=6385c7d2&sg=161563f2";
+    if (produktyMap.has("709053")) {
+        produktyMap.set("709053", {
+            ...produktyMap.get("709053"),
+            nazev: "Trhané hovězí maso sous-vide",
+            kategorie: "Sous-vide výrobky",
+            podkategorie: "Sous-vide výrobky",
+            popis: "Chlazený výrobek",
+            fotkaSkupiny: "foto-sous-vide-vyrobky.png"
+        });
+    }
+
     // Hovězí přední krk se prodává jako přibližně pětikilové balení.
     if (produktyMap.has("711010")) {
         produktyMap.set("711010", { ...produktyMap.get("711010"), baleni: "cca 5 kg" });
