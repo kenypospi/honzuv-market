@@ -1102,6 +1102,25 @@ async function nactiData() {
         });
     }
 
+    // Hovězí líčka 709054: 253 Kč bez DPH, tedy 283,36 Kč včetně 12% DPH.
+    cenyFinal["709054"] = {
+        ...(cenyFinal["709054"] || {}),
+        cena: 283.36,
+        prodejniJednotka: "kg",
+        zobrazit: true
+    };
+    window.HONZUV_MARKET_FOTKY["709054"] = "https://cdn.myshoptet.com/usr/www.bossfood.cz/user/shop/big/5650_hovezi-licka-s-korenovou-zeleninou-sous-vide-banquet-cca-2-6-kg.jpg?ff=1&x=1024&y=768&q=85&ts=6385c7d2&sg=161563f2";
+    if (produktyMap.has("709054")) {
+        produktyMap.set("709054", {
+            ...produktyMap.get("709054"),
+            nazev: "Hovězí líčka s kořenovou zeleninou sous-vide",
+            kategorie: "Sous-vide výrobky",
+            podkategorie: "Sous-vide výrobky",
+            popis: "Chlazený výrobek",
+            fotkaSkupiny: "foto-sous-vide-vyrobky.png"
+        });
+    }
+
     // Hovězí přední krk se prodává jako přibližně pětikilové balení.
     if (produktyMap.has("711010")) {
         produktyMap.set("711010", { ...produktyMap.get("711010"), baleni: "cca 5 kg" });
