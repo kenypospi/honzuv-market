@@ -10,4 +10,6 @@ window.HONZUV_MARKET_FOTKY["724101"]="Fotky/724101.jpg";
 window.HONZUV_MARKET_FOTKY["725651"]="Fotky/725651.jpg";
 async function overFotkyProduktu(){}
 
+
 window.HONZUV_MARKET_FOTKY["618043"]="https://www.grily-shop.cz/data/produkty/684/v1677847467.jpg";
+window.HONZUV_MARKET_FOTKY["852751"]="https://cdn.juniorpapier.sk/images/0/a0de10b394a1b17c/2/microtene-bags-30-x-40-cm-15-mic-transparent-50-pcs.jpg?hash=956898929";
