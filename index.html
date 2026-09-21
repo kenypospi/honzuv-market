@@ -1914,3 +1914,61 @@ document.addEventListener("DOMContentLoaded",()=>{
 </script>
 </body>
 </html>
+
+
+<style>
+.storage-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 22px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: .07em;
+    white-space: nowrap;
+}
+.storage-badge--frozen {
+    color: #14506d;
+    background: #e8f5fb;
+    border: 1px solid #9bcfe5;
+}
+.storage-badge--frozen::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    margin-right: 6px;
+    border-radius: 50%;
+    background: #2c91bd;
+    box-shadow: 0 0 0 3px rgba(44,145,189,.13);
+}
+</style>
+<script>
+(function () {
+    function jeMrazenyProdukt(karta) {
+        const meta = (karta.querySelector(".product-meta")?.textContent || "").toLocaleLowerCase("cs-CZ");
+        const text = (karta.textContent || "").toLocaleLowerCase("cs-CZ");
+        return meta.includes("mražené výrobky") || /\bmražen(ý|á|é|ého|ou)\b/.test(text);
+    }
+
+    function doplnStitkySkladovani() {
+        document.querySelectorAll("#obsah .card").forEach(karta => {
+            if (!jeMrazenyProdukt(karta) || karta.querySelector(".storage-badge--frozen")) return;
+            const meta = karta.querySelector(".product-meta");
+            if (!meta) return;
+            const stitek = document.createElement("span");
+            stitek.className = "storage-badge storage-badge--frozen";
+            stitek.textContent = "MRAŽENÉ";
+            stitek.setAttribute("aria-label", "Mražený výrobek");
+            const kategorie = meta.querySelector(".tag");
+            kategorie ? kategorie.insertAdjacentElement("afterend", stitek) : meta.prepend(stitek);
+        });
+    }
+
+    const obsah = document.getElementById("obsah");
+    if (!obsah) return;
+    new MutationObserver(doplnStitkySkladovani).observe(obsah, { childList: true, subtree: true });
+    doplnStitkySkladovani();
+})();
+</script>
