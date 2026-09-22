@@ -1988,10 +1988,20 @@ document.addEventListener("DOMContentLoaded",()=>{
 </style>
 <script>
 (function () {
+    const mrazeneKategorie = new Set([
+        "mražené výrobky",
+        "mražené ryby a mořské plody",
+        "zmrzliny",
+        "pekařské výrobky"
+    ]);
+    const dalsiMrazeneProdukty = new Set(["400202"]); // avokádo půlky
+
     function jeMrazenyProdukt(karta) {
         const meta = (karta.querySelector(".product-meta")?.textContent || "").toLocaleLowerCase("cs-CZ");
         const text = (karta.textContent || "").toLocaleLowerCase("cs-CZ");
-        return meta.includes("mražené výrobky") || text.includes("mražen");
+        const kategorie = (karta.querySelector(".product-meta .tag")?.textContent || "").trim().toLocaleLowerCase("cs-CZ");
+        const id = (text.match(/\bid\s*(\d{6})\b/) || [])[1] || "";
+        return mrazeneKategorie.has(kategorie) || dalsiMrazeneProdukty.has(id) || text.includes("mražen");
     }
 
     function jeCerstvaRyba(karta) {
