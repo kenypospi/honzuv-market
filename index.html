@@ -1204,6 +1204,28 @@ window.HONZUV_MARKET_FOTKY["709305"] = "https://cdn.myshoptet.com/usr/www.bossfo
             fotkaSkupiny: "foto-ostatni-potraviny.png"
         });
     }
+    // Ryby rozdělujeme podle skutečného způsobu skladování. Do sekce ČERSTVÉ
+    // se produkt dostane pouze výslovným zařazením, nikdy jen podle názvu.
+    const cerstveRybyIds = new Set(["720002"]);
+    const chlazeneRybyIds = new Set(["191900", "191943", "167062"]);
+    for (const [id, produkt] of produktyMap.entries()) {
+        if (produkt.kategorie !== "Ryby a mořské plody") continue;
+        if (cerstveRybyIds.has(id)) {
+            produktyMap.set(id, { ...produkt, kategorie: "Čerstvé ryby a mořské plody", podkategorie: "Čerstvé ryby", popis: "Čerstvý chlazený výrobek" });
+        } else if (chlazeneRybyIds.has(id)) {
+            produktyMap.set(id, { ...produkt, kategorie: "Chlazené a uzené ryby", podkategorie: "Chlazené a uzené ryby" });
+        } else {
+            produktyMap.set(id, { ...produkt, kategorie: "Mražené ryby a mořské plody", popis: produkt.popis || "Mražený výrobek" });
+        }
+    }
+    const vlastniRybiKategorie = [
+        { kategorie: "Čerstvé ryby a mořské plody", nazev: "Čerstvé ryby a mořské plody", zobrazit: true, poradi: 7.1 },
+        { kategorie: "Mražené ryby a mořské plody", nazev: "Mražené ryby a mořské plody", zobrazit: true, poradi: 7.2 },
+        { kategorie: "Chlazené a uzené ryby", nazev: "Chlazené a uzené ryby", zobrazit: true, poradi: 7.3 }
+    ];
+    for (const novaKategorie of vlastniRybiKategorie) {
+        if (!kategorie.some(k => k.kategorie === novaKategorie.kategorie)) kategorie.push(novaKategorie);
+    }
     return {produkty:[...produktyMap.values()], ceny:cenyFinal, kategorie, nastaveni:nastaveniData, sekce, podkategorie};
 }
 async function nactiCsvVolitelne(url, nazev) {
@@ -1425,7 +1447,7 @@ function vytvorFiltry() {
     const zdrojKategorii=[...(kategorieNastaveni.length?kategorieNastaveni:[...new Set(produkty.map(p=>p.kategorie))].map(k=>({kategorie:k,nazev:k,zobrazit:true,poradi:9999})))];
     if(!zdrojKategorii.some(k=>k.kategorie===KATEGORIE_SOUS_VIDE)) zdrojKategorii.push({kategorie:KATEGORIE_SOUS_VIDE,nazev:KATEGORIE_SOUS_VIDE,zobrazit:true,poradi:9999});
     const poradiMrazenych=Number(zdrojKategorii.find(k=>k.kategorie==="Mražené výrobky")?.poradi)||4;
-    const kats=zdrojKategorii.slice().sort((a,b)=>{
+    const kats=zdrojKategorii.slice().filter(k=>produkty.some(p=>p.kategorie===k.kategorie&&jeProduktViditelny(p.id))).sort((a,b)=>{
         const poradiKategorie = k => k.kategorie === "Zmrzliny" ? poradiMrazenych + 0.1 : Number(k.poradi) || 9999;
         return poradiKategorie(a)-poradiKategorie(b);
     });
@@ -1943,6 +1965,26 @@ document.addEventListener("DOMContentLoaded",()=>{
     background: #2c91bd;
     box-shadow: 0 0 0 3px rgba(44,145,189,.13);
 }
+.storage-badge--fresh {
+    color: #0b5d45;
+    background: #e8f7f0;
+    border: 1px solid #7bc7a8;
+}
+.storage-badge--fresh::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    margin-right: 6px;
+    border-radius: 50%;
+    background: #16835d;
+    box-shadow: 0 0 0 3px rgba(22,131,93,.13);
+}
+.category-link[data-kategorie="Čerstvé ryby a mořské plody"] {
+    margin: 4px 0;
+    border: 1px solid #8fd1b5;
+    background: linear-gradient(135deg,#edf9f4,#ffffff);
+    color: #0b5d45;
+}
 </style>
 <script>
 (function () {
@@ -1952,15 +1994,24 @@ document.addEventListener("DOMContentLoaded",()=>{
         return meta.includes("mražené výrobky") || text.includes("mražen");
     }
 
+    function jeCerstvaRyba(karta) {
+        const meta = (karta.querySelector(".product-meta")?.textContent || "").toLocaleLowerCase("cs-CZ");
+        return meta.includes("čerstvé ryby a mořské plody");
+    }
+
     function doplnStitkySkladovani() {
         document.querySelectorAll("#obsah .card").forEach(karta => {
-            if (!jeMrazenyProdukt(karta) || karta.querySelector(".storage-badge--frozen")) return;
             const meta = karta.querySelector(".product-meta");
             if (!meta) return;
+            const jeFresh = jeCerstvaRyba(karta);
+            const jeFrozen = jeMrazenyProdukt(karta);
+            if (!jeFresh && !jeFrozen) return;
+            if (jeFresh && karta.querySelector(".storage-badge--fresh")) return;
+            if (jeFrozen && karta.querySelector(".storage-badge--frozen")) return;
             const stitek = document.createElement("span");
-            stitek.className = "storage-badge storage-badge--frozen";
-            stitek.textContent = "MRAŽENÉ";
-            stitek.setAttribute("aria-label", "Mražený výrobek");
+            stitek.className = `storage-badge ${jeFresh ? "storage-badge--fresh" : "storage-badge--frozen"}`;
+            stitek.textContent = jeFresh ? "FRESH · ČERSTVÉ" : "MRAŽENÉ";
+            stitek.setAttribute("aria-label", jeFresh ? "Čerstvá ryba" : "Mražený výrobek");
             const kategorie = meta.querySelector(".tag");
             kategorie ? kategorie.insertAdjacentElement("afterend", stitek) : meta.prepend(stitek);
         });
