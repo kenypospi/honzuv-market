@@ -1503,6 +1503,9 @@ function vykresliProdukty() {
         const index = produkty.findIndex(polozka => polozka.id === produkt.id);
         const maCenu = Number.isFinite(cena);
         const pocetVKosiku = mnozstviProduktuVKosiku(produkt.id);
+        const popisBezOpakovaniMrazeni = String(produkt.popis || "")
+            .replace(/^\s*mražen(?:ý|é)\s+(?:výrobek|zboží)\s*(?:[·\-–:]\s*)?/i, "")
+            .trim();
         obsah.insertAdjacentHTML("beforeend", `
             <article class="card">
                 <img src="${escapeHtml(window.HONZUV_MARKET_FOTKY[produkt.id])}" alt="${escapeHtml(produkt.nazev)}" class="product-photo" role="button" tabindex="0" title="Kliknutím zvětšit" aria-label="Zvětšit fotografii: ${escapeHtml(produkt.nazev)}" onclick="otevriNahledFotky(this.src,this.alt)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();otevriNahledFotky(this.src,this.alt)}" onerror="this.closest('.card')?.remove()" loading="lazy">
@@ -1514,7 +1517,7 @@ function vykresliProdukty() {
                     </div>
                     <h2>${escapeHtml(produkt.nazev)}</h2>
                     <p class="product-description">Balení: ${escapeHtml(produkt.baleni)}</p>
-                    ${produkt.popis ? `<p class="product-description">${escapeHtml(produkt.popis)}</p>` : ""}
+                    ${popisBezOpakovaniMrazeni ? `<p class="product-description">${escapeHtml(popisBezOpakovaniMrazeni)}</p>` : ""}
                     <div class="price-row">
                         <span class="price ${maCenu ? "" : "price-unavailable"}">
                             ${maCenu ? `${formatCena.format(zobrazenaCena)}/${escapeHtml(zobrazenaJednotka)}` : "Cena bude doplněna"}
@@ -1946,6 +1949,10 @@ document.addEventListener("DOMContentLoaded",()=>{
 
 <style>
 .storage-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 4;
     display: inline-flex;
     align-items: center;
     min-height: 22px;
@@ -1956,6 +1963,7 @@ document.addEventListener("DOMContentLoaded",()=>{
     line-height: 1;
     letter-spacing: .07em;
     white-space: nowrap;
+    box-shadow: 0 5px 14px rgba(15, 45, 58, .16);
 }
 .storage-badge--frozen {
     color: #14506d;
@@ -2006,7 +2014,7 @@ document.addEventListener("DOMContentLoaded",()=>{
         "zmrzliny",
         "pekařské výrobky"
     ]);
-    const dalsiMrazeneProdukty = new Set(["400202"]); // avokádo půlky
+    const dalsiMrazeneProdukty = new Set(["400202", "208059"]); // avokádo půlky, flank steak
 
     function jeMrazenyProdukt(karta) {
         const meta = (karta.querySelector(".product-meta")?.textContent || "").toLocaleLowerCase("cs-CZ");
@@ -2034,8 +2042,7 @@ document.addEventListener("DOMContentLoaded",()=>{
             stitek.className = `storage-badge ${jeFresh ? "storage-badge--fresh" : "storage-badge--frozen"}`;
             stitek.textContent = jeFresh ? "FRESH · ČERSTVÉ" : "MRAŽENÉ";
             stitek.setAttribute("aria-label", jeFresh ? "Čerstvá ryba" : "Mražený výrobek");
-            const kategorie = meta.querySelector(".tag");
-            kategorie ? kategorie.insertAdjacentElement("afterend", stitek) : meta.prepend(stitek);
+            karta.appendChild(stitek);
         });
     }
 
