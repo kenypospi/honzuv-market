@@ -1213,21 +1213,17 @@ window.HONZUV_MARKET_FOTKY["709305"] = "https://cdn.myshoptet.com/usr/www.bossfo
     // Ryby rozdělujeme podle skutečného způsobu skladování. Do sekce ČERSTVÉ
     // se produkt dostane pouze výslovným zařazením, nikdy jen podle názvu.
     const cerstveRybyIds = new Set(["720002"]);
-    const chlazeneRybyIds = new Set(["191900", "191943", "167062"]);
     for (const [id, produkt] of produktyMap.entries()) {
         if (produkt.kategorie !== "Ryby a mořské plody") continue;
         if (cerstveRybyIds.has(id)) {
             produktyMap.set(id, { ...produkt, kategorie: "Čerstvé ryby a mořské plody", podkategorie: "Čerstvé ryby", popis: "Čerstvý chlazený výrobek" });
-        } else if (chlazeneRybyIds.has(id)) {
-            produktyMap.set(id, { ...produkt, kategorie: "Chlazené a uzené ryby", podkategorie: "Chlazené a uzené ryby" });
         } else {
             produktyMap.set(id, { ...produkt, kategorie: "Mražené ryby a mořské plody", popis: produkt.popis || "Mražený výrobek" });
         }
     }
     const vlastniRybiKategorie = [
         { kategorie: "Čerstvé ryby a mořské plody", nazev: "Čerstvé ryby a mořské plody", zobrazit: true, poradi: 7.1 },
-        { kategorie: "Mražené ryby a mořské plody", nazev: "Mražené ryby a mořské plody", zobrazit: true, poradi: 7.2 },
-        { kategorie: "Chlazené a uzené ryby", nazev: "Chlazené a uzené ryby", zobrazit: true, poradi: 7.3 }
+        { kategorie: "Mražené ryby a mořské plody", nazev: "Mražené ryby a mořské plody", zobrazit: true, poradi: 7.2 }
     ];
     for (const novaKategorie of vlastniRybiKategorie) {
         if (!kategorie.some(k => k.kategorie === novaKategorie.kategorie)) kategorie.push(novaKategorie);
