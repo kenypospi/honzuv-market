@@ -1037,7 +1037,7 @@ async function nactiData() {
     // Časově omezená akce na všechny tři předsmažené vepřové řízky.
     // Do 30. 9. 2026 včetně stojí 124,90 Kč/kg; od 1. 10. se automaticky
     // vrátí běžná cena 139,90 Kč/kg a zmizí označení AKCE.
-    const veproveRizkyIds = ["342602", "342604", "342056"];
+    const veproveRizkyIds = ["342601", "342602", "342604", "342056"];
     const probihaAkceVeproveRizky = new Date() <= new Date(2026, 8, 30, 23, 59, 59, 999);
     for (const id of veproveRizkyIds) {
         cenyFinal[id] = {
