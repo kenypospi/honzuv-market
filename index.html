@@ -1012,6 +1012,20 @@ async function nactiData() {
     });
     window.HONZUV_MARKET_FOTKY["541073"] = "https://cdn.myshoptet.com/usr/www.bossfood.cz/user/shop/big/82947_snimek-obrazovky-2026-04-02-144325.png?ff=1&x=1024&y=768&q=85&ts=69ce6477&sg=161563f2";
 
+    // Javorový sirup Maple Joe patří do trvanlivých potravin.
+    produktyMap.set("642266", {
+        ...(produktyMap.get("642266") || {}),
+        id: "642266",
+        nazev: "Maple Joe javorový sirup",
+        baleni: "1 x 500 ml",
+        kategorie: "Trvanlivé potraviny",
+        podkategorie: "Gastro suroviny",
+        fotkaSkupiny: "foto-trvanlive-potraviny.png"
+    });
+    window.HONZUV_MARKET_FOTKY["642266"] = "https://cdn.myshoptet.com/usr/www.bossfood.cz/user/shop/big/16198_javorovy-sirup-maple-joe-500-ml.jpg?ff=1&x=1024&y=768&q=85&ts=633d879e&sg=161563f2";
+    // 720002: skutečná produktová fotografie čerstvého lososa z nabídky Bossfood/Bidfood.
+    window.HONZUV_MARKET_FOTKY["720002"] = "https://cdn.myshoptet.com/usr/www.bossfood.cz/user/shop/big/421-1_losos-filet-s-kuzi--bez-kosti-vakuum-1-1-4-kg-dle-vahy.jpg?6629109c=";
+
     const cenyZCsv = produktyData.length ? Object.fromEntries(produktyData.map(p => [String(p.id), {
         cena:p.cena, prodejniJednotka:p.prodejniJednotka, akce:p.akce, vyprodej:p.vyprodej, zobrazit:p.zobrazit,
         nejprodavanejsi:p.nejprodavanejsi, novinka:p.novinka, doporucujeme:p.doporucujeme
@@ -1024,6 +1038,19 @@ async function nactiData() {
     cenyFinal["541073"] = {
         ...(cenyFinal["541073"] || {}),
         cena: 409,
+        prodejniJednotka: "bal.",
+        zobrazit: true,
+        akce: false,
+        vyprodej: false,
+        nejprodavanejsi: false,
+        novinka: false,
+        doporucujeme: false
+    };
+
+    // Maple Joe 642266: 319 Kč včetně DPH za celé balení 500 ml.
+    cenyFinal["642266"] = {
+        ...(cenyFinal["642266"] || {}),
+        cena: 319,
         prodejniJednotka: "bal.",
         zobrazit: true,
         akce: false,
