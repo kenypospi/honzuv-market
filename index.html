@@ -1034,6 +1034,21 @@ async function nactiData() {
     if (!produktyData.length) throw new Error('Aktuální ceny z Google tabulky nejsou dostupné.');
     const cenyFinal = cenyZCsv;
 
+    // Časově omezená akce na všechny tři předsmažené vepřové řízky.
+    // Do 30. 9. 2026 včetně stojí 124,90 Kč/kg; od 1. 10. se automaticky
+    // vrátí běžná cena 139,90 Kč/kg a zmizí označení AKCE.
+    const veproveRizkyIds = ["342602", "342604", "342056"];
+    const probihaAkceVeproveRizky = new Date() <= new Date(2026, 8, 30, 23, 59, 59, 999);
+    for (const id of veproveRizkyIds) {
+        cenyFinal[id] = {
+            ...(cenyFinal[id] || {}),
+            cena: probihaAkceVeproveRizky ? 124.9 : 139.9,
+            prodejniJednotka: "kg",
+            zobrazit: true,
+            akce: probihaAkceVeproveRizky
+        };
+    }
+
     // Pistácie natural jádra 541073: 409 Kč včetně DPH za celé balení 500 g.
     cenyFinal["541073"] = {
         ...(cenyFinal["541073"] || {}),
