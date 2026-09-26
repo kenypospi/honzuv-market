@@ -1072,6 +1072,18 @@ async function nactiData() {
     });
     window.HONZUV_MARKET_FOTKY["724118"] = "https://cdn.myshoptet.com/usr/www.bossfood.cz/user/shop/big/15631_prsuto-kare-z-prsuterie-chovanecek-cca-800-g.jpg?ff=1&x=1024&y=768&q=85&ts=66aa0cfa&sg=161563f2";
 
+    produktyMap.set("336799", {
+        ...(produktyMap.get("336799") || {}),
+        id: "336799",
+        nazev: "Věnečky MIX – pistácie, kokos a Lotus",
+        baleni: "1 x 20 ks (1 290 g)",
+        kategorie: "Pekařské výrobky",
+        podkategorie: "Zákusky a dezerty",
+        popis: "6× pistácie, 7× kokos a 7× Lotus · mražený výrobek",
+        fotkaSkupiny: "foto-pekarske-vyrobky.png"
+    });
+    window.HONZUV_MARKET_FOTKY["336799"] = "https://cdn.myshoptet.com/usr/www.bossfood.cz/user/shop/big/83094_snimek-obrazovky-2026-04-29-180312.png?ff=1&x=1024&y=768&q=85&ts=69f22bf6&sg=161563f2";
+
     const cenyZCsv = produktyData.length ? Object.fromEntries(produktyData.map(p => [String(p.id), {
         cena:p.cena, prodejniJednotka:p.prodejniJednotka, akce:p.akce, vyprodej:p.vyprodej, zobrazit:p.zobrazit,
         nejprodavanejsi:p.nejprodavanejsi, novinka:p.novinka, doporucujeme:p.doporucujeme
@@ -1143,6 +1155,18 @@ async function nactiData() {
         doporucujeme: true
     };
 
+    cenyFinal["336799"] = {
+        ...(cenyFinal["336799"] || {}),
+        cena: 449,
+        prodejniJednotka: "bal.",
+        zobrazit: true,
+        akce: false,
+        vyprodej: false,
+        nejprodavanejsi: false,
+        novinka: true,
+        doporucujeme: true
+    };
+
     // Pistácie natural jádra 541073: 409 Kč včetně DPH za celé balení 500 g.
     cenyFinal["541073"] = {
         ...(cenyFinal["541073"] || {}),
@@ -1183,7 +1207,7 @@ async function nactiData() {
     }
 
     // Ručně určené produkty pro sekci Novinky.
-    const novinkyIds = new Set(["191306", "191671", "724102", "724118", "400202", "612028", "640211", "724101", "725651", "733454", "737010", "737009", "737017", "735018", "736025"]);
+    const novinkyIds = new Set(["191306", "191671", "724102", "724118", "336799", "400202", "612028", "640211", "724101", "725651", "733454", "737010", "737009", "737017", "735018", "736025"]);
     for (const [id, hodnota] of Object.entries(cenyFinal)) {
         if (hodnota && typeof hodnota === "object") {
             cenyFinal[id] = { ...hodnota, novinka: novinkyIds.has(id) };
