@@ -1206,6 +1206,58 @@ async function nactiData() {
         };
     }
 
+    // Ručně přidaná nabídka 28. 9. 2026 – ceny jsou konečné včetně DPH.
+    const novaNabidkaZari = {
+        "405013": { cena: 99, jednotka: "kg", nazev: "Jahody Senga Sengana", kategorie: "Ovoce a zelenina", baleni: "1 x 2,5 kg", popis: "Mražený výrobek", top: true },
+        "421640": { cena: 125, jednotka: "kg", nazev: "Lesní ovoce", kategorie: "Ovoce a zelenina", baleni: "1 x 2,5 kg", popis: "Mražený výrobek", top: true },
+        "405040": { cena: 189, jednotka: "kg", nazev: "Borůvky lesní", kategorie: "Ovoce a zelenina", baleni: "1 x 2,5 kg", popis: "Mražený výrobek", top: false },
+        "405030": { cena: 229, jednotka: "kg", nazev: "Maliny", kategorie: "Ovoce a zelenina", baleni: "1 x 2,5 kg", popis: "Mražený výrobek", top: true },
+        "400251": { cena: 179, jednotka: "kg", nazev: "Maracuja – dužina", kategorie: "Ovoce a zelenina", baleni: "1 x 1 kg", popis: "Mražený výrobek", top: false },
+        "709060": { cena: 369, jednotka: "kg", nazev: "Španělský ptáček sous-vide", kategorie: "Sous-vide výrobky", baleni: "dle váhy", popis: "Chlazený výrobek", top: false },
+        "550116": { cena: 249, jednotka: "bal.", nazev: "Tácek č. 5 (16 x 23 cm) papírový", kategorie: "Obaly a gastro vybavení", baleni: "1 x 250 ks", popis: "Cena za celé balení 250 ks", top: false },
+        "640220": { cena: 129, jednotka: "ks", nazev: "Kitl Syrob mango 500 ml", kategorie: "Nápoje", baleni: "1 x 500 ml", popis: "Cena za kus", top: true },
+        "641603": { cena: 119, jednotka: "ks", nazev: "MAGU RaZzberave – malina 500 ml", kategorie: "Nápoje", baleni: "6 x 500 ml", popis: "Prodej po jednotlivých kusech", top: true },
+        "641601": { cena: 119, jednotka: "ks", nazev: "MAGU Mystic Red – jahoda 500 ml", kategorie: "Nápoje", baleni: "6 x 500 ml", popis: "Prodej po jednotlivých kusech", top: true },
+        "425108": { cena: 99, jednotka: "kg", nazev: "WOK zeleninová směs", kategorie: "Ovoce a zelenina", baleni: "1 x 2,5 kg", popis: "Mražený výrobek", top: true },
+        "429581": { cena: 119, jednotka: "kg", nazev: "Ratatouille", kategorie: "Ovoce a zelenina", baleni: "1 x 2,5 kg", popis: "Mražený výrobek", top: false },
+        "429585": { cena: 89, jednotka: "kg", nazev: "Přílohová zelenina", kategorie: "Ovoce a zelenina", baleni: "1 x 2,5 kg", popis: "Mražený výrobek", top: true }
+    };
+    for (const [id, produkt] of Object.entries(novaNabidkaZari)) {
+        cenyFinal[id] = {
+            ...(cenyFinal[id] || {}),
+            cena: produkt.cena,
+            prodejniJednotka: produkt.jednotka,
+            zobrazit: true,
+            akce: false,
+            vyprodej: false,
+            nejprodavanejsi: produkt.top,
+            doporucujeme: produkt.top,
+            novinka: false
+        };
+        const puvodni = produktyMap.get(id) || { id };
+        produktyMap.set(id, {
+            ...puvodni,
+            id,
+            nazev: produkt.nazev,
+            baleni: produkt.baleni,
+            kategorie: produkt.kategorie,
+            podkategorie: produkt.kategorie === "Nápoje"
+                ? "Nealkoholické nápoje a teplé nápoje"
+                : produkt.kategorie === "Obaly a gastro vybavení"
+                    ? "Jednorázové nádobí a obaly"
+                    : produkt.kategorie,
+            popis: produkt.popis,
+            fotkaSkupiny: produkt.kategorie === "Nápoje"
+                ? "foto-napoje.png"
+                : produkt.kategorie === "Obaly a gastro vybavení"
+                    ? "foto-obaly-a-gastro-vybaveni.png"
+                    : produkt.kategorie === "Sous-vide výrobky"
+                        ? "foto-sous-vide-vyrobky.png"
+                        : "foto-ovoce-a-zelenina.png"
+        });
+    }
+    // Tácek č. 4 nebyl do nabídky vybrán.
+    cenyFinal["550117"] = { ...(cenyFinal["550117"] || {}), zobrazit: false };
     // Ručně určené produkty pro sekci Novinky.
     const novinkyIds = new Set(["191306", "191671", "724102", "724118", "336799", "400202", "612028", "640211", "724101", "725651", "733454", "737010", "737009", "737017", "735018", "736025"]);
     for (const [id, hodnota] of Object.entries(cenyFinal)) {
