@@ -1278,7 +1278,7 @@ async function nactiData() {
     // Tácek č. 4 nebyl do nabídky vybrán.
     cenyFinal["550117"] = { ...(cenyFinal["550117"] || {}), zobrazit: false };
     // Ručně určené produkty pro sekci Novinky.
-    const novinkyIds = new Set(["191306", "191671", "724102", "724118", "336799", "400202", "612028", "640211", "724101", "725651", "733454", "737010", "737009", "737017", "735018", "736025"]);
+    const novinkyIds = new Set(["405013", "421640", "405040", "405030", "400251", "709060", "550116", "640220", "641603", "641601", "425108", "429581", "429585", "191306", "191671", "724102", "724118", "336799", "400202", "612028", "640211", "724101", "725651", "733454", "737010", "737009", "737017", "735018", "736025"]);
     for (const [id, hodnota] of Object.entries(cenyFinal)) {
         if (hodnota && typeof hodnota === "object") {
             cenyFinal[id] = { ...hodnota, novinka: novinkyIds.has(id) };
