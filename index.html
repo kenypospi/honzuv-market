@@ -1282,6 +1282,58 @@ async function nactiData() {
         podkategorie: "Uzeniny",
         popis: "Chlazený výrobek · cena za celé balení 500 g"
     });
+    // Totální výprodej 29. 9. 2026 – základem je výhradně sloupec Nová PC.
+    // Konečné ceny obsahují DPH a lehkou přirážku přibližně 10 %.
+    const totalniVyprodej = {
+        "166921": { cena: 159.90, jednotka: "kg", nazev: "Obalované porce z tresky", baleni: "1 x 3 kg", kategorie: "Mražené ryby a mořské plody", podkategorie: "Mražené ryby", popis: "Mražený výrobek · výprodej" },
+        "611547": { cena: 18.90, jednotka: "kg", nazev: "Vřetena bezvaječná", baleni: "1 x 5 kg", kategorie: "Trvanlivé potraviny", podkategorie: "Těstoviny a přílohy", popis: "Výprodej · cena za kilogram" },
+        "641353": { cena: 4.90, jednotka: "ks", nazev: "Alpro Drink Banana 250 ml", baleni: "24 x 250 ml", kategorie: "Nápoje", podkategorie: "Nealkoholické nápoje a teplé nápoje", popis: "Výprodej · prodej po jednotlivých kusech" },
+        "643593": { cena: 74.90, jednotka: "ks", nazev: "Kamis koření na steaky 580 g", baleni: "1 x 580 g", kategorie: "Trvanlivé potraviny", podkategorie: "Koření", popis: "Výprodej · cena za kus" },
+        "643594": { cena: 74.90, jednotka: "ks", nazev: "Kamis koření na hamburger 580 g", baleni: "1 x 580 g", kategorie: "Trvanlivé potraviny", podkategorie: "Koření", popis: "Výprodej · cena za kus" },
+        "733706": { cena: 13.90, jednotka: "ks", nazev: "Frizzante Ryzlink v plechu 250 ml", baleni: "20 x 250 ml", kategorie: "Nápoje", podkategorie: "Alkoholické nápoje", popis: "Výprodej · prodej po jednotlivých kusech" },
+        "317017": { cena: 97.90, jednotka: "kg", nazev: "Canuti Fettuccine vaječné", baleni: "1 x 2 kg", kategorie: "Mražené výrobky", podkategorie: "Mražené těstoviny", popis: "Mražený výrobek · výprodej" },
+        "9316031": { cena: 97.90, jednotka: "kg", nazev: "Mammoli di patata viola", baleni: "4 x 1 kg", kategorie: "Mražené výrobky", podkategorie: "Mražené těstoviny", popis: "Mražený výrobek · výprodej" },
+        "611717": { cena: 35.90, jednotka: "kg", nazev: "Agnesi Farfalle", baleni: "1 x 3 kg", kategorie: "Trvanlivé potraviny", podkategorie: "Těstoviny a přílohy", popis: "Výprodej · cena za kilogram" },
+        "733731": { cena: 21.90, jednotka: "ks", nazev: "Ciao Spritz v plechu 200 ml", baleni: "12 x 200 ml", kategorie: "Nápoje", podkategorie: "Alkoholické nápoje", popis: "Výprodej · prodej po jednotlivých kusech" },
+        "643335": { cena: 109.90, jednotka: "ks", nazev: "Balsamico di Modena 500 ml", baleni: "1 x 500 ml", kategorie: "Trvanlivé potraviny", podkategorie: "Dochucovadla", popis: "Výprodej · cena za kus" },
+        "643170": { cena: 122.90, jednotka: "ks", nazev: "Bobkový list celý 60 g", baleni: "1 x 60 g", kategorie: "Trvanlivé potraviny", podkategorie: "Koření", popis: "Výprodej · cena za kus" },
+        "643509": { cena: 122.90, jednotka: "ks", nazev: "Kamis kmín celý 230 g", baleni: "1 x 230 g", kategorie: "Trvanlivé potraviny", podkategorie: "Koření", popis: "Výprodej · cena za kus" },
+        "643582": { cena: 122.90, jednotka: "ks", nazev: "Kamis guláš kořenicí přípravek 525 g", baleni: "1 x 525 g", kategorie: "Trvanlivé potraviny", podkategorie: "Koření", popis: "Výprodej · cena za kus" },
+        "643580": { cena: 122.90, jednotka: "ks", nazev: "Kamis grilovací kořenicí přípravek 550 g", baleni: "1 x 550 g", kategorie: "Trvanlivé potraviny", podkategorie: "Koření", popis: "Výprodej · cena za kus" }
+    };
+    for (const [id, produkt] of Object.entries(totalniVyprodej)) {
+        cenyFinal[id] = {
+            ...(cenyFinal[id] || {}),
+            cena: produkt.cena,
+            prodejniJednotka: produkt.jednotka,
+            zobrazit: true,
+            akce: false,
+            vyprodej: true,
+            nejprodavanejsi: false,
+            novinka: false,
+            doporucujeme: false
+        };
+        const puvodni = produktyMap.get(id) || { id };
+        produktyMap.set(id, {
+            ...puvodni,
+            id,
+            nazev: produkt.nazev,
+            baleni: produkt.baleni,
+            kategorie: produkt.kategorie,
+            podkategorie: produkt.podkategorie,
+            popis: produkt.popis,
+            fotkaSkupiny: produkt.kategorie === "Nápoje"
+                ? "foto-napoje.png"
+                : produkt.kategorie === "Trvanlivé potraviny"
+                    ? "foto-trvanlive-potraviny.png"
+                    : produkt.kategorie === "Mražené ryby a mořské plody"
+                        ? "foto-ryby-a-morske-plody.png"
+                        : "foto-mrazene-vyrobky.png"
+        });
+        if (!Object.prototype.hasOwnProperty.call(window.HONZUV_MARKET_FOTKY, id)) {
+            window.HONZUV_MARKET_FOTKY[id] = "";
+        }
+    }
     // Každý viditelný produkt musí mít vlastní záznam v mapě obrázků.
     // Do dohledání individuálních produktových fotografií používáme odpovídající
     // skutečné kategoriální fotografie, aby se karty na webu neztratily.
