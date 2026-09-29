@@ -1766,7 +1766,7 @@ function vykresliProdukty() {
             .trim();
         obsah.insertAdjacentHTML("beforeend", `
             <article class="card">
-                <img src="${escapeHtml(window.HONZUV_MARKET_FOTKY[produkt.id])}" alt="${escapeHtml(produkt.nazev)}" class="product-photo" role="button" tabindex="0" title="Kliknutím zvětšit" aria-label="Zvětšit fotografii: ${escapeHtml(produkt.nazev)}" onclick="otevriNahledFotky(this.src,this.alt)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();otevriNahledFotky(this.src,this.alt)}" onerror="this.closest('.card')?.remove()" loading="lazy">
+                <img src="${escapeHtml(window.HONZUV_MARKET_FOTKY[produkt.id])}" alt="${escapeHtml(produkt.nazev)}" class="product-photo" role="button" tabindex="0" title="Kliknutím zvětšit" aria-label="Zvětšit fotografii: ${escapeHtml(produkt.nazev)}" onclick="otevriNahledFotky(this.src,this.alt)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();otevriNahledFotky(this.src,this.alt)}" onerror="if(prednostniProdukty.has('${escapeJs(produkt.id)}')){this.replaceWith(vytvorNahledBezFotky())}else{this.closest('.card')?.remove()}" loading="lazy">
                 <div class="card-body">
                     <div class="product-meta">
                         <span class="tag">${escapeHtml(zobrazNazevKategorie(produkt.kategorie))}</span>
