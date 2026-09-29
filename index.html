@@ -1813,9 +1813,10 @@ function pridejOblibeneDoKosiku(){
     [...oblibene].forEach(id=>{const i=produkty.findIndex(p=>String(p.id)===String(id));if(i>=0&&jeProduktViditelny(id)&&Number.isFinite(cenaProduktu(id)))pridejDoKosiku(i);});
     zobrazKosik();
 }
+const prednostniProdukty = new Map(["405013","421640","405040","405030","400251","709060","550116","640220","641603","641601","425108","429581","429585"].map((id, poradi) => [id, poradi]));
 function filtrujProdukty() {
     const hledani=hledanyText.toLocaleLowerCase("cs-CZ").trim();
-    return produkty.filter(p=>{
+    const vybrane = produkty.filter(p=>{
         if(!jeProduktViditelny(p.id)) return false;
         let ok;
         if(aktivniKategorie===FILTR_VSE) ok=true;
@@ -1831,6 +1832,10 @@ function filtrujProdukty() {
         const text=`${p.nazev} ${p.id} ${p.baleni} ${p.kategorie} ${p.podkategorie||""}`.toLocaleLowerCase("cs-CZ");
         return ok&&text.includes(hledani);
     });
+    if (aktivniKategorie === FILTR_VSE || aktivniKategorie === FILTR_NOVINKY) {
+        vybrane.sort((a, b) => (prednostniProdukty.get(String(a.id)) ?? Infinity) - (prednostniProdukty.get(String(b.id)) ?? Infinity));
+    }
+    return vybrane;
 }
 function filtrKategorie(kategorie) {
     aktivniKategorie = kategorie;
