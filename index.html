@@ -1261,6 +1261,27 @@ async function nactiData() {
                         : "foto-ovoce-a-zelenina.png"
         });
     }
+    // Pastrami 725651 – nákupní cena 178,95 Kč bez DPH je za celé balení 500 g.
+    cenyFinal["725651"] = {
+        ...(cenyFinal["725651"] || {}),
+        cena: 234.90,
+        prodejniJednotka: "bal.",
+        zobrazit: true,
+        akce: false,
+        vyprodej: false,
+        nejprodavanejsi: false,
+        doporucujeme: true
+    };
+    const pastrami725651 = produktyMap.get("725651") || { id: "725651" };
+    produktyMap.set("725651", {
+        ...pastrami725651,
+        id: "725651",
+        nazev: "Pastrami (hovězí šunka) plátky Steinex",
+        baleni: "1 x 500 g",
+        kategorie: "Uzeniny a lahůdky",
+        podkategorie: "Uzeniny",
+        popis: "Chlazený výrobek · cena za celé balení 500 g"
+    });
     // Každý viditelný produkt musí mít vlastní záznam v mapě obrázků.
     // Do dohledání individuálních produktových fotografií používáme odpovídající
     // skutečné kategoriální fotografie, aby se karty na webu neztratily.
