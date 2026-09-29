@@ -1256,6 +1256,25 @@ async function nactiData() {
                         : "foto-ovoce-a-zelenina.png"
         });
     }
+    // Každý viditelný produkt musí mít vlastní záznam v mapě obrázků.
+    // Do dohledání individuálních produktových fotografií používáme odpovídající
+    // skutečné kategoriální fotografie, aby se karty na webu neztratily.
+    const obrazkyNoveNabidky = {
+        "405013": "foto-ovoce-a-zelenina.png",
+        "421640": "foto-ovoce-a-zelenina.png",
+        "405040": "foto-ovoce-a-zelenina.png",
+        "405030": "foto-ovoce-a-zelenina.png",
+        "400251": "foto-ovoce-a-zelenina.png",
+        "709060": "foto-sous-vide-vyrobky.png",
+        "550116": "foto-obaly-a-gastro-vybaveni.png",
+        "640220": "foto-napoje.png",
+        "641603": "foto-napoje.png",
+        "641601": "foto-napoje.png",
+        "425108": "foto-ovoce-a-zelenina.png",
+        "429581": "foto-ovoce-a-zelenina.png",
+        "429585": "foto-ovoce-a-zelenina.png"
+    };
+    Object.assign(window.HONZUV_MARKET_FOTKY, obrazkyNoveNabidky);
     // Tácek č. 4 nebyl do nabídky vybrán.
     cenyFinal["550117"] = { ...(cenyFinal["550117"] || {}), zobrazit: false };
     // Ručně určené produkty pro sekci Novinky.
