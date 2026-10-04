@@ -1647,6 +1647,44 @@ window.HONZUV_MARKET_FOTKY["709305"] = "https://cdn.myshoptet.com/usr/www.bossfo
             kategorie: "Mléčné výrobky" });
     }
     cenyFinal["701806"] = { ...(cenyFinal["701806"] || {}), zobrazit: false };
+    // Ověřené hlavní skupiny položek zobrazených na webu při kontrole 4. 10. 2026.
+    // Konkrétní ID zamezují změnám zařazení ostatního, skrytého sortimentu.
+    const overeneHlavniSkupiny = {
+        "230185": "Maso",
+        "725655": "Uzeniny a lahůdky",
+        "721342": "Uzeniny a lahůdky",
+        "721234": "Uzeniny a lahůdky",
+        "741501": "Uzeniny a lahůdky",
+        "741518": "Uzeniny a lahůdky",
+        "342930": "Uzeniny a lahůdky",
+        "342971": "Uzeniny a lahůdky",
+        "342977": "Uzeniny a lahůdky",
+        "452110": "Mražené výrobky",
+        "709058": "Sous-vide výrobky",
+        "336184": "Pekařské výrobky",
+        "337101": "Pekařské výrobky",
+        "500010": "Zmrzliny",
+        "500073": "Zmrzliny",
+        "500050": "Zmrzliny",
+        "500083": "Zmrzliny",
+        "500440": "Zmrzliny",
+        "500423": "Zmrzliny",
+        "500424": "Zmrzliny",
+        "502313": "Zmrzliny",
+        "502311": "Zmrzliny",
+        "502312": "Zmrzliny",
+        "502010": "Zmrzliny",
+        "502251": "Zmrzliny",
+        "502252": "Zmrzliny",
+        "519714": "Zmrzliny",
+        "519753": "Zmrzliny",
+        "541073": "Trvanlivé potraviny",
+        "852751": "Obaly a gastro vybavení"
+};
+    for (const [id, kategorie] of Object.entries(overeneHlavniSkupiny)) {
+        const produkt = produktyMap.get(id);
+        if (produkt) produktyMap.set(id, { ...produkt, kategorie });
+    }
     // I při nedostupném nebo neúplném seznamu kategorií zachováme skupiny katalogu.
     for (const produkt of produktyMap.values()) {
         if (produkt.kategorie && !kategorie.some(k => k.kategorie === produkt.kategorie)) {
