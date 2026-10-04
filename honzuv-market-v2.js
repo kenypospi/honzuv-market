@@ -37,7 +37,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         kategorieNastaveni = data.kategorie;
         nastaveni = data.nastaveni;
         sekceNastaveni = data.sekce;
-        podkategorieNastaveni = data.podkategorie;
         synchronizujKosik();
         vytvorFiltry();
         vykresliProdukty();
@@ -51,15 +50,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 let kategorieNastaveni = [];
 let nastaveni = {};
 let sekceNastaveni = [];
-let podkategorieNastaveni = [];
 
 async function nactiData() {
-    const [produktyCsv, kategorieCsv, nastaveniCsv, sekceCsv, podkategorieCsv] = await Promise.all([
+    const [produktyCsv, kategorieCsv, nastaveniCsv, sekceCsv] = await Promise.all([
         nactiCsv(window.HONZUV_MARKET_PRODUKTY_CSV_URL),
         nactiCsvVolitelne(window.HONZUV_MARKET_KATEGORIE_CSV_URL, "Kategorie"),
         nactiCsvVolitelne(window.HONZUV_MARKET_NASTAVENI_CSV_URL, "Nastavení"),
         nactiCsvVolitelne(window.HONZUV_MARKET_SEKCE_CSV_URL, "Sekce"),
-        nactiCsvVolitelne(window.HONZUV_MARKET_PODKATEGORIE_CSV_URL, "Podkategorie")
     ]);
 
     const zakladniKatalog = Array.isArray(window.HONZUV_MARKET_KATALOG)
@@ -73,7 +70,6 @@ async function nactiData() {
     const kategorie = kategorieZCsv(kategorieCsv);
     const nastaveniData = nastaveniZCsv(nastaveniCsv);
     const sekce = sekceZCsv(sekceCsv);
-    const podkategorie = podkategorieZCsv(podkategorieCsv);
     const produktyData = produktyZCsv(produktyCsv);
 
     const produktyMap = new Map(zakladniKatalog.map(p => [String(p.id), { ...p }]));
@@ -85,7 +81,6 @@ async function nactiData() {
             nazev: p.nazev || zakladni.nazev,
             baleni: p.baleni || zakladni.baleni,
             kategorie: p.kategorie || zakladni.kategorie,
-            podkategorie: p.podkategorie || zakladni.podkategorie || ""
         });
     }
 
@@ -93,7 +88,7 @@ async function nactiData() {
         cena:p.cena, akce:p.akce, vyprodej:p.vyprodej, zobrazit:p.zobrazit,
         nejprodavanejsi:p.nejprodavanejsi, novinka:p.novinka, doporucujeme:p.doporucujeme
     }]));
-    return {produkty:[...produktyMap.values()], ceny:cenyFinal, kategorie, nastaveni:nastaveniData, sekce, podkategorie};
+    return {produkty:[...produktyMap.values()], ceny:cenyFinal, kategorie, nastaveni:nastaveniData, sekce};
 }
 async function nactiCsvVolitelne(url, nazev) {
     try { return await nactiCsv(url); }
@@ -127,7 +122,6 @@ function produktyZCsv(rows) {
     const indexAkce = najdiSloupec(hlavicka, ["akcni produkt ano ne", "akcni produkt", "akce"]);
     const indexVyprodej = najdiSloupec(hlavicka, ["vyprodej ano ne", "vyprodej"]);
     const indexViditelnosti = najdiSloupec(hlavicka, ["zobrazit na webu ano ne", "zobrazit na webu", "zobrazit"]);
-    const indexPodkategorie = najdiSloupec(hlavicka, ["podkategorie"]);
     const indexNejprodavanejsi = najdiSloupec(hlavicka, ["nejprodavanejsi"]);
     const indexNovinka = najdiSloupec(hlavicka, ["novinka"]);
     const indexDoporucujeme = najdiSloupec(hlavicka, ["doporucujeme"]);
@@ -141,7 +135,6 @@ function produktyZCsv(rows) {
         nazev: indexNazvu >= 0 ? String(row[indexNazvu] || "").trim() : "",
         baleni: indexBaleni >= 0 ? String(row[indexBaleni] || "").trim() : "",
         kategorie: indexKategorie >= 0 ? String(row[indexKategorie] || "").trim() : "",
-        podkategorie: indexPodkategorie >= 0 ? String(row[indexPodkategorie] || "").trim() : "",
         cena: prevedCenu(row[indexCenyKg]),
         akce: indexAkce >= 0 && /^(ano|yes|1|true)$/i.test(String(row[indexAkce] || "").trim()),
         vyprodej: indexVyprodej >= 0 && /^(ano|yes|1|true)$/i.test(String(row[indexVyprodej] || "").trim()),
@@ -173,11 +166,7 @@ function sekceZCsv(rows) {
     const h=rows[0].map(normalizujText), is=najdiSloupec(h,["sekce"]), inaz=najdiSloupec(h,["nazev na webu","nazev"]), iz=najdiSloupec(h,["zobrazit"]), ip=najdiSloupec(h,["poradi"]);
     return rows.slice(1).map(r=>({sekce:String(r[is]||"").trim(),nazev:String(r[inaz]||r[is]||"").trim(),zobrazit:!/^(ne|no|0|false)$/i.test(String(r[iz]||"").trim()),poradi:Number(r[ip])||9999})).filter(x=>x.sekce&&x.zobrazit).sort((a,b)=>a.poradi-b.poradi);
 }
-function podkategorieZCsv(rows) {
-    if (rows.length < 2) return [];
-    const h=rows[0].map(normalizujText), ik=najdiSloupec(h,["kategorie"]), ipod=najdiSloupec(h,["podkategorie"]), inaz=najdiSloupec(h,["nazev na webu","nazev"]), iz=najdiSloupec(h,["zobrazit"]), iord=najdiSloupec(h,["poradi"]);
-    return rows.slice(1).map(r=>({kategorie:String(r[ik]||"").trim(),podkategorie:String(r[ipod]||"").trim(),nazev:String(r[inaz]||r[ipod]||"").trim(),zobrazit:!/^(ne|no|0|false)$/i.test(String(r[iz]||"").trim()),poradi:Number(r[iord])||9999})).filter(x=>x.kategorie&&x.podkategorie&&x.zobrazit).sort((a,b)=>a.kategorie.localeCompare(b.kategorie,"cs")||a.poradi-b.poradi);
-}
+
 
 function nastaveniZCsv(rows) {
     const result = {};
@@ -281,12 +270,10 @@ function vytvorFiltry() {
     const list=document.getElementById("seznamKategorii");
     const kats=kategorieNastaveni.length?kategorieNastaveni:[...new Set(produkty.map(p=>p.kategorie))].map(k=>({kategorie:k,nazev:k,zobrazit:true,poradi:9999}));
     list.innerHTML=kats.map(k=>{
-        const subs=podkategorieNastaveni.filter(s=>s.kategorie===k.kategorie);
         const pocet=produkty.filter(p=>p.kategorie===k.kategorie&&jeProduktViditelny(p.id)).length;
-        return `<div class="category-group"><button class="category-link" type="button" data-kategorie="${escapeHtml(k.kategorie)}"><span>${escapeHtml(k.nazev)}</span><strong>${pocet}</strong></button>${subs.length?`<div class="subcategory-list">${subs.map(s=>{const n=produkty.filter(p=>p.kategorie===s.kategorie&&p.podkategorie===s.podkategorie&&jeProduktViditelny(p.id)).length;return `<button class="subcategory-link" type="button" data-pod="${escapeHtml(s.kategorie+"||"+s.podkategorie)}"><span>${escapeHtml(s.nazev)}</span><strong>${n}</strong></button>`;}).join("")}</div>`:""}</div>`;
+        return `<div class="category-group"><button class="category-link" type="button" data-kategorie="${escapeHtml(k.kategorie)}"><span>${escapeHtml(k.nazev)}</span><strong>${pocet}</strong></button></div>`;
     }).join("");
     list.querySelectorAll(".category-link").forEach(b=>b.addEventListener("click",()=>filtrKategorie(b.dataset.kategorie)));
-    list.querySelectorAll(".subcategory-link").forEach(b=>b.addEventListener("click",()=>filtrKategorie("__podkategorie__"+b.dataset.pod)));
     nastavAktivniTlacitko();
 }
 function zobrazNazevKategorie(kategorie) {
@@ -326,7 +313,7 @@ function vykresliProdukty() {
                         <span>ID ${escapeHtml(produkt.id)}</span>
                     </div>
                     <h2>${escapeHtml(produkt.nazev)}</h2>
-                    <p class="product-description">Balení: ${escapeHtml(produkt.baleni)}${produkt.podkategorie ? ` · ${escapeHtml(produkt.podkategorie)}` : ""}</p>
+                    <p class="product-description">Balení: ${escapeHtml(produkt.baleni)}</p>
                     <div class="price-row">
                         <span class="price ${maCenu ? "" : "price-unavailable"}">
                             ${maCenu ? `${formatCena.format(cenaKg)}/kg` : "Cena bude doplněna"}
@@ -377,9 +364,8 @@ function filtrujProdukty() {
         else if(aktivniKategorie===FILTR_DOPORUCUJEME) ok=jeDoporucujeme(p.id);
         else if(aktivniKategorie===FILTR_OBLIBENE) ok=jeOblibeny(p.id);
         else if(aktivniKategorie===FILTR_STALA_NABIDKA) ok=jeStalaNabidka(p.id);
-        else if(aktivniKategorie.startsWith("__podkategorie__")) { const [k,pod]=aktivniKategorie.slice(16).split("||"); ok=p.kategorie===k&&p.podkategorie===pod; }
         else ok=p.kategorie===aktivniKategorie;
-        const text=`${p.nazev} ${p.id} ${p.baleni} ${p.kategorie} ${p.podkategorie||""}`.toLocaleLowerCase("cs-CZ");
+        const text=`${p.nazev} ${p.id} ${p.baleni} ${p.kategorie}`.toLocaleLowerCase("cs-CZ");
         return ok&&text.includes(hledani);
     });
 }
