@@ -1534,6 +1534,149 @@ window.HONZUV_MARKET_FOTKY["709305"] = "https://cdn.myshoptet.com/usr/www.bossfo
     for (const novaKategorie of vlastniRybiKategorie) {
         if (!kategorie.some(k => k.kategorie === novaKategorie.kategorie)) kategorie.push(novaKategorie);
     }
+    // Schválená mléčná nabídka 4. 10. 2026; konečné ceny včetně DPH.
+    const mlecnaNabidkaRijen = {
+    "701804": {
+        "cena": 119.9,
+        "jednotka": "kg",
+        "nazev": "Eidam 30 % cihla",
+        "baleni": "cca 2,7 kg",
+        "popis": "Jemný polotvrdý sýr na pečivo, smažení a zapékání. Cena za kg; konečná cena podle skutečné hmotnosti."
+    },
+    "701096": {
+        "cena": 129.9,
+        "jednotka": "kg",
+        "nazev": "Gouda 48 % blok",
+        "baleni": "cca 3 kg",
+        "popis": "Polotvrdý sýr s jemnou chutí na pečivo, do toastů a na zapékání. Cena za kg; konečná cena podle skutečné hmotnosti."
+    },
+    "702189": {
+        "cena": 239.9,
+        "jednotka": "bal.",
+        "nazev": "Olomoucké tvarůžky",
+        "baleni": "1 x 750 g",
+        "popis": "Zrající sýr s výraznou chutí na pečivo, nakládání i tepelnou úpravu. Cena za celé balení 750 g."
+    },
+    "701392": {
+        "cena": 279.9,
+        "jednotka": "bal.",
+        "nazev": "Mozzarella ciliegina – kuličky v nálevu",
+        "baleni": "1 x 1 kg sýra v nálevu",
+        "popis": "Malé kuličky mozzarelly do salátů, na jednohubky a těstoviny. Cena za balení s 1 kg sýra po odkapání. Na objednávku."
+    },
+    "701415": {
+        "cena": 699.9,
+        "jednotka": "kg",
+        "nazev": "Parmigiano Reggiano výseč",
+        "baleni": "cca 1 kg",
+        "popis": "Italský tvrdý sýr s výraznou chutí na těstoviny, rizoto i k vínu. Cena za kg; konečná cena podle skutečné hmotnosti. Na objednávku."
+    },
+    "701460": {
+        "cena": 219.9,
+        "jednotka": "bal.",
+        "nazev": "Gran Biraghi hobliny",
+        "baleni": "1 x 500 g",
+        "popis": "Hobliny italského tvrdého sýra na těstoviny, rizoto a saláty. Cena za celé balení 500 g. Na objednávku."
+    },
+    "701451": {
+        "cena": 289.9,
+        "jednotka": "bal.",
+        "nazev": "Mix strouhaných tvrdých sýrů",
+        "baleni": "1 x 1 kg",
+        "popis": "Směs strouhaných tvrdých sýrů na těstoviny, omáčky a zapékání. Cena za celé balení 1 kg. Na objednávku."
+    },
+    "541183": {
+        "cena": 249.9,
+        "jednotka": "ks",
+        "nazev": "Debic šlehačka ve spreji 35 % neslazená",
+        "baleni": "1 x 700 ml",
+        "popis": "Neslazená smetanová šlehačka ve spreji ke zdobení dezertů, ovoce a kávy. Cena za jeden sprej 700 ml."
+    },
+    "541180": {
+        "cena": 189.9,
+        "jednotka": "ks",
+        "nazev": "Debic šlehačka ve spreji 26 % slazená",
+        "baleni": "1 x 700 ml",
+        "popis": "Slazená smetanová šlehačka ve spreji na poháry, dezerty a horké nápoje. Cena za jeden sprej 700 ml."
+    },
+    "702812": {
+        "cena": 209.9,
+        "jednotka": "bal.",
+        "nazev": "Greeta bílý sýr v nálevu Bergader",
+        "baleni": "1 x 800 g",
+        "popis": "Bílý sýr v nálevu do zeleninových salátů a studené kuchyně. Cena za celé balení 800 g. Na objednávku."
+    },
+    "541236": {
+        "cena": 149.9,
+        "jednotka": "bal.",
+        "nazev": "Zakysaná smetana 24 % Creme Frischli",
+        "baleni": "1 x 1 kg",
+        "popis": "Krémová zakysaná smetana na dipy, omáčky a do studené kuchyně. Cena za celé balení 1 kg. Na objednávku."
+    },
+    "703351": {
+        "cena": 9.9,
+        "jednotka": "ks",
+        "nazev": "Jogurt Ekomilk meruňka",
+        "baleni": "10 x 150 g",
+        "popis": "Ovocný jogurt s meruňkovou příchutí ke snídani nebo svačině. Cena za kelímek 150 g; karton obsahuje 10 kusů."
+    },
+    "703352": {
+        "cena": 9.9,
+        "jednotka": "ks",
+        "nazev": "Jogurt Ekomilk borůvka",
+        "baleni": "10 x 150 g",
+        "popis": "Ovocný jogurt s borůvkovou příchutí ke snídani nebo svačině. Cena za kelímek 150 g; karton obsahuje 10 kusů."
+    },
+    "703353": {
+        "cena": 9.9,
+        "jednotka": "ks",
+        "nazev": "Jogurt Ekomilk lesní směs",
+        "baleni": "10 x 150 g",
+        "popis": "Jogurt s příchutí lesního ovoce ke snídani nebo svačině. Cena za kelímek 150 g; karton obsahuje 10 kusů."
+    },
+    "704023": {
+        "cena": 17.9,
+        "jednotka": "ks",
+        "nazev": "Pribináček Kapsík vanilka",
+        "baleni": "10 x 70 g",
+        "popis": "Tvarohovo-smetanový dezert s vanilkovou příchutí v praktické kapsičce. Cena za kus 70 g; karton obsahuje 10 kusů."
+    },
+    "704025": {
+        "cena": 17.9,
+        "jednotka": "ks",
+        "nazev": "Pribináček Kapsík kakao",
+        "baleni": "10 x 70 g",
+        "popis": "Tvarohovo-smetanový dezert s kakaovou příchutí v praktické kapsičce. Cena za kus 70 g; karton obsahuje 10 kusů."
+    },
+    "704019": {
+        "cena": 14.5,
+        "jednotka": "ks",
+        "nazev": "Lipánek vanilka",
+        "baleni": "10 x 80 g",
+        "popis": "Smetanový krém s vanilkovou příchutí na sladkou svačinu. Cena za kelímek 80 g; karton obsahuje 10 kusů."
+    },
+    "704017": {
+        "cena": 14.5,
+        "jednotka": "ks",
+        "nazev": "Lipánek kakao",
+        "baleni": "10 x 80 g",
+        "popis": "Smetanový krém s kakaovou příchutí na sladkou svačinu. Cena za kelímek 80 g; karton obsahuje 10 kusů."
+    },
+    "704151": {
+        "cena": 14.9,
+        "jednotka": "ks",
+        "nazev": "Kinder mléčný řez",
+        "baleni": "10 x 28 g",
+        "popis": "Jemný piškotový řez s mléčnou náplní. Cena za kus 28 g je 14,90 Kč; prodej po celém balení 10 kusů za 149 Kč."
+    }
+};
+    for (const [id, produkt] of Object.entries(mlecnaNabidkaRijen)) {
+        cenyFinal[id] = { ...(cenyFinal[id] || {}), cena: produkt.cena,
+            prodejniJednotka: produkt.jednotka, zobrazit: true, akce: false, vyprodej: false };
+        produktyMap.set(id, { ...(produktyMap.get(id) || { id }),
+            nazev: produkt.nazev, baleni: produkt.baleni, popis: produkt.popis });
+    }
+    cenyFinal["701806"] = { ...(cenyFinal["701806"] || {}), zobrazit: false };
     return {produkty:[...produktyMap.values()], ceny:cenyFinal, kategorie, nastaveni:nastaveniData, sekce, podkategorie};
 }
 async function nactiCsvVolitelne(url, nazev) {
@@ -2114,7 +2257,6 @@ function jeProdejPoBaleniZKusu(id) {
 }
 
 const PRODEJ_PO_BALENI = {
-    "702189": { nasobekCeny: 35, kusu: 35 },
     "704151": { nasobekCeny: 10, kusu: 10 },
     "337101": { nasobekCeny: 90, kusu: 90 },
     "742501": { nasobekCeny: 20, kusu: 20 },
