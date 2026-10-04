@@ -2052,7 +2052,13 @@ function nastavAktivniTlacitko() {
     const hero=document.getElementById("favoritesHero");
     if(hero) hero.classList.toggle("is-active", aktivniKategorie===FILTR_OBLIBENE);
     document.querySelectorAll(".category-link").forEach(tlacitko => {
-        tlacitko.classList.toggle("active", tlacitko.dataset.kategorie === aktivniKategorie);
+        const aktivni = tlacitko.dataset.kategorie === aktivniKategorie
+            || aktivniKategorie.startsWith("__podkategorie__" + tlacitko.dataset.kategorie + "||");
+        tlacitko.classList.toggle("active", aktivni);
+        tlacitko.closest(".category-group")?.classList.toggle("category-group-active", aktivni);
+    });
+    document.querySelectorAll(".subcategory-link").forEach(tlacitko => {
+        tlacitko.classList.toggle("active", "__podkategorie__" + tlacitko.dataset.pod === aktivniKategorie);
     });
 }
 
