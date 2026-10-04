@@ -1674,9 +1674,24 @@ window.HONZUV_MARKET_FOTKY["709305"] = "https://cdn.myshoptet.com/usr/www.bossfo
         cenyFinal[id] = { ...(cenyFinal[id] || {}), cena: produkt.cena,
             prodejniJednotka: produkt.jednotka, zobrazit: true, akce: false, vyprodej: false };
         produktyMap.set(id, { ...(produktyMap.get(id) || { id }),
-            nazev: produkt.nazev, baleni: produkt.baleni, popis: produkt.popis });
+            nazev: produkt.nazev, baleni: produkt.baleni, popis: produkt.popis,
+            kategorie: "Mléčné výrobky",
+            podkategorie: ["703351", "703352", "703353"].includes(id) ? "Jogurty"
+                : ["704023", "704025", "704019", "704017", "704151"].includes(id) ? "Mléčné dezerty"
+                : ["541180", "541183", "541236"].includes(id) ? "Smetany a šlehačky" : "Sýry" });
     }
     cenyFinal["701806"] = { ...(cenyFinal["701806"] || {}), zobrazit: false };
+    // I při nedostupném nebo neúplném seznamu kategorií zachováme skupiny katalogu.
+    for (const produkt of produktyMap.values()) {
+        if (produkt.kategorie && !kategorie.some(k => k.kategorie === produkt.kategorie)) {
+            kategorie.push({ kategorie: produkt.kategorie, nazev: produkt.kategorie, zobrazit: true, poradi: 9999 });
+        }
+    }
+    for (const [poradi, nazev] of ["Sýry", "Jogurty", "Mléčné dezerty", "Smetany a šlehačky"].entries()) {
+        if (!podkategorie.some(s => s.kategorie === "Mléčné výrobky" && s.podkategorie === nazev)) {
+            podkategorie.push({ kategorie: "Mléčné výrobky", podkategorie: nazev, nazev, poradi, zobrazit: true });
+        }
+    }
     return {produkty:[...produktyMap.values()], ceny:cenyFinal, kategorie, nastaveni:nastaveniData, sekce, podkategorie};
 }
 async function nactiCsvVolitelne(url, nazev) {
