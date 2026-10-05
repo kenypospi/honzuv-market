@@ -1,20 +1,17 @@
-# Honzův Market – finální GitHub verze
+# Správa Honzova Marketu
 
-Tato složka je připravená přímo do kořene repozitáře `honzuv-market`.
+Hlavní sešit: https://docs.google.com/spreadsheets/d/1XAtJpgbPtBceLPK0iJq6Ss4Fm9MMzwJ_wFpo3yJiI0Y/edit
 
-Ovládání přes Google Tabulky:
-- Ceny: název, cena, kategorie, viditelnost a příznaky
-- Kategorie: název, viditelnost, pořadí
-- Sekce: Akční nabídka, Nejprodávanější, Novinky, Výprodej, Doporučujeme
-- Nastavení: názvy a cena dopravy
+Původní Excel zůstává zálohou. Pro další úpravy používejte tento Google sešit.
 
-`index.html` používá kořenové `katalog.js`, `ceny.js`, `nastaveni.js`. Neobsahuje rozbitý odkaz na `Data/katalog.js`.
+V listu Ceny upravujte G (cena s DPH), H (jednotka ceny), K (zobrazit), L (popis). Název, balení a hlavní kategorie jsou B–D. E–F jsou skryté doplňkové údaje. Prvních 129 položek bylo při převodu zobrazených; ostatní zůstaly vypnuté. Filtrem lze najít jakýkoli produkt.
 
+U ceny za kg se částka za objednávku počítá podle hmotnosti balení. Pro vícekusové balení slouží Q (násobek ceny), R (objednávková jednotka), S (počet kusů). Tyto údaje musí odpovídat balení.
 
-## Ceny a prodejní jednotky – důležité
-Do listu `Produkty a ceny` přidejte sloupec `Prodejní jednotka`. Povolené hodnoty jsou `kg`, `ks`, `bal.` a `karton`.
+Kategorie řídí hlavní skupiny, jejich názvy, pořadí a viditelnost. Sekce řídí speciální filtry nabídky. V Nastavení lze měnit cenu dopravy a název stálé nabídky; názvy akce/výprodej jsou záložní, pokud není dostupný list Sekce. Podskupiny se nepoužívají.
 
-- `kg`: cena je za 1 kg a web ji automaticky násobí hmotností celého balení (např. 179,90 Kč/kg × 5 kg = 899,50 Kč za balení).
-- `ks`, `bal.`, `karton`: cena je konečná cena za uvedenou prodejní jednotku a hmotnost z textu balení ji nijak nemění.
+Změny se načtou při otevření nebo obnovení webu. Google může aktualizaci publikovaného CSV krátce zpozdit. Publikované jsou pouze Ceny, Kategorie, Nastavení a Sekce; nepatří do nich údaje zákazníků ani nákupní ceny.
 
-Pokud sloupec nebo hodnota chybí, web jednotku bezpečně odvodí z balení: `kg`/`g` a „dle váhy“ zůstanou váhové, `l`/`ml`/`ks` se prodávají jako `ks` a ostatní jako `bal.`. Hodnota z tabulky má vždy přednost.
+Při výpadku Google načte web katalog-zaloha.js a zobrazí upozornění na záložní nabídku. Záloha není živě aktualizovaná. Při obnovení dostupnosti má vždy přednost Google tabulka.
+
+Objednávka se odesílá přes WhatsApp. Automatický zápis objednávek do tabulky není součástí napojení.
