@@ -765,7 +765,7 @@ main {
 .product-photo{height:250px!important;aspect-ratio:auto!important;padding:12px;box-sizing:border-box;object-fit:contain!important;object-position:center;background:#fff;cursor:zoom-in;transition:transform .18s ease,filter .18s ease}.product-photo:hover{transform:scale(1.025);filter:brightness(1.02)}.image-lightbox[hidden]{display:none}.image-lightbox{position:fixed;inset:0;z-index:1200;display:grid;place-items:center;padding:24px;background:rgba(12,22,16,.78);backdrop-filter:blur(4px)}.image-lightbox-panel{position:relative;width:min(92vw,900px);max-height:90vh;padding:22px;border-radius:16px;background:#fff;box-shadow:0 24px 80px rgba(0,0,0,.35)}.image-lightbox-photo{display:block;width:100%;height:min(72vh,680px);object-fit:contain;background:#fff}.image-lightbox-title{margin:14px 48px 0 0;color:var(--ink);font-size:18px;font-weight:800}.image-lightbox-close{position:absolute;top:12px;right:12px;width:42px;height:42px;border:0;border-radius:50%;background:var(--soft);color:var(--ink);font-size:27px;line-height:1;cursor:pointer}body.image-preview-open{overflow:hidden}@media(max-width:640px){.product-photo{height:220px!important;padding:10px}.image-lightbox{padding:12px}.image-lightbox-panel{padding:14px}.image-lightbox-photo{height:70vh}}
 </style>
     <meta name="honzuv-market-build" content="2026-08-12.7-single">
-    <link rel="stylesheet" href="market-family.css?v=20261004-main-groups">
+    <link rel="stylesheet" href="market-family.css?v=20261012-welcome">
     <script src="fotky-manifest.js?v=20260919-1"></script>
     <script src="katalog-zaloha.js?v=20261004-sheets"></script>
 </head>
@@ -784,16 +784,21 @@ main {
     <main>
         <section class="market-welcome" aria-labelledby="marketWelcomeTitle">
             <div class="market-welcome-copy">
-                <p class="market-eyebrow">HONZŮV MARKET</p>
-                <h1 id="marketWelcomeTitle">Čerstvá nabídka.<br>Jednoduchá objednávka.</h1>
-                <p class="market-welcome-lead">Objednávky přijímám do úterý 17:00.</p>
+                <p class="market-eyebrow">DOBRÉ JÍDLO. BEZ ZBYTEČNÝCH STAROSTÍ.</p>
+                <h1 id="marketWelcomeTitle">Vyberte si.<br>O zbytek se postarám.</h1>
+                <p class="market-welcome-lead">Objednávky přijímám do <strong>úterý 17:00.</strong></p>
+                <div class="market-welcome-actions">
+                    <a class="market-browse" href="#nabidka">Prohlédnout nabídku <span aria-hidden="true">↗</span></a>
+                    <a class="market-whatsapp" href="https://chat.whatsapp.com/Dq2y5mCdWwtD7fF4HCyVau" target="_blank" rel="noopener noreferrer">Novinky na WhatsAppu <span aria-hidden="true">↗</span></a>
+                </div>
+            </div>
+            <div class="market-delivery">
+                <p class="market-delivery-title">Váš nákup, krok za krokem</p>
                 <div class="market-schedule" aria-label="Informace k objednávce">
                     <span><strong>Středa</strong>Příjem zboží</span>
                     <span><strong>Čtvrtek</strong>Odběr nebo rozvoz</span>
                     <span><strong>Po domluvě</strong>Také jiný termín</span>
                 </div>
-                <a class="market-browse" href="#nabidka">Prohlédnout nabídku <span aria-hidden="true">→</span></a>
-                <a class="market-whatsapp" href="https://chat.whatsapp.com/Dq2y5mCdWwtD7fF4HCyVau" target="_blank" rel="noopener noreferrer">Přidat se do WhatsApp skupiny</a>
             </div>
         </section>
         <section id="favoritesHeroSection" class="favorites-hero" aria-label="Oblíbené produkty">
