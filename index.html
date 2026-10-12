@@ -1024,7 +1024,7 @@ function produktyZCsv(rows) {
         throw new Error(`Google tabulka produktů nemá rozpoznaný sloupec ceny. Nalezené sloupce: ${hlavicka.join(", ")}`);
     }
 
-    return rows.slice(1).map(row => {
+    return rows.slice(1).map((row, indexRadku) => {
         let cenaSDph = indexCenySDph >= 0 ? prevedCenu(row[indexCenySDph]) : NaN;
         if (indexCenySDph < 0 && indexCenyBezDph >= 0) {
             const cenaBezDph = prevedCenu(row[indexCenyBezDph]);
@@ -1039,6 +1039,7 @@ function produktyZCsv(rows) {
         baleni: indexBaleni >= 0 ? String(row[indexBaleni] || "").trim() : "",
         kategorie: indexKategorie >= 0 ? String(row[indexKategorie] || "").trim() : "",
         cena: cenaSDph,
+        poradiPridani: indexRadku + 2,
         popis: String(row[najdiSloupec(hlavicka, ["popis", "strucny popis"])] || "").trim(),
         fotografie: String(row[najdiSloupec(hlavicka, ["fotografie", "fotka"])] || "").trim(),
         nasobekCeny: prevedCenu(row[najdiSloupec(hlavicka, ["nasobek ceny"])]) || 1,
@@ -1282,7 +1283,12 @@ function pridejOblibeneDoKosiku(){
     [...oblibene].forEach(id=>{const i=produkty.findIndex(p=>String(p.id)===String(id));if(i>=0&&jeProduktViditelny(id)&&Number.isFinite(cenaProduktu(id)))pridejDoKosiku(i);});
     zobrazKosik();
 }
-const prednostniProdukty = new Map(["405013","421640","405040","405030","400251","709060","550116","640220","641603","641601","425108","429581","429585"].map((id, poradi) => [id, poradi]));
+// Starší položky byly postupně zveřejněny na původních řádcích katalogu.
+// Další nové produkty přidávané na konec tabulky dostanou přednost automaticky.
+const posledniZverejnene = new Map(["191193", "418055", "725722", "167037", "465184", "709309", "709306", "191900", "700422", "167001"].map((id, index) => [id, 1153 + (index + 1) / 100]));
+function poradiZverejneni(produkt) {
+    return posledniZverejnene.get(String(produkt.id)) ?? produkt.poradiPridani ?? 0;
+}
 function filtrujProdukty() {
     const hledani=hledanyText.toLocaleLowerCase("cs-CZ").trim();
     const vybrane = produkty.filter(p=>{
@@ -1300,9 +1306,7 @@ function filtrujProdukty() {
         const text=`${p.nazev} ${p.id} ${p.baleni} ${p.kategorie}`.toLocaleLowerCase("cs-CZ");
         return ok&&text.includes(hledani);
     });
-    if (aktivniKategorie === FILTR_VSE || aktivniKategorie === FILTR_NOVINKY) {
-        vybrane.sort((a, b) => (prednostniProdukty.get(String(a.id)) ?? Infinity) - (prednostniProdukty.get(String(b.id)) ?? Infinity));
-    }
+    vybrane.sort((a, b) => poradiZverejneni(b) - poradiZverejneni(a));
     return vybrane;
 }
 function filtrKategorie(kategorie) {
