@@ -765,7 +765,7 @@ main {
 .product-photo{height:250px!important;aspect-ratio:auto!important;padding:12px;box-sizing:border-box;object-fit:contain!important;object-position:center;background:#fff;cursor:zoom-in;transition:transform .18s ease,filter .18s ease}.product-photo:hover{transform:scale(1.025);filter:brightness(1.02)}.image-lightbox[hidden]{display:none}.image-lightbox{position:fixed;inset:0;z-index:1200;display:grid;place-items:center;padding:24px;background:rgba(12,22,16,.78);backdrop-filter:blur(4px)}.image-lightbox-panel{position:relative;width:min(92vw,900px);max-height:90vh;padding:22px;border-radius:16px;background:#fff;box-shadow:0 24px 80px rgba(0,0,0,.35)}.image-lightbox-photo{display:block;width:100%;height:min(72vh,680px);object-fit:contain;background:#fff}.image-lightbox-title{margin:14px 48px 0 0;color:var(--ink);font-size:18px;font-weight:800}.image-lightbox-close{position:absolute;top:12px;right:12px;width:42px;height:42px;border:0;border-radius:50%;background:var(--soft);color:var(--ink);font-size:27px;line-height:1;cursor:pointer}body.image-preview-open{overflow:hidden}@media(max-width:640px){.product-photo{height:220px!important;padding:10px}.image-lightbox{padding:12px}.image-lightbox-panel{padding:14px}.image-lightbox-photo{height:70vh}}
 </style>
     <meta name="honzuv-market-build" content="2026-08-12.7-single">
-    <link rel="stylesheet" href="market-family.css?v=20261012-welcome">
+    <link rel="stylesheet" href="market-family.css?v=20261013-tips">
     <script src="fotky-manifest.js?v=20260919-1"></script>
     <script src="katalog-zaloha.js?v=20261004-sheets"></script>
 </head>
@@ -801,6 +801,7 @@ main {
                 </div>
             </div>
         </section>
+        <section id="honzovyTipy" class="market-tips" aria-labelledby="tipsTitle" hidden></section>
         <section id="favoritesHeroSection" class="favorites-hero" aria-label="Oblíbené produkty">
             <button id="favoritesHero" class="favorites-hero-card" type="button" aria-label="Otevřít oblíbené produkty">
                 <span class="favorites-hero-icon" aria-hidden="true">♥</span>
@@ -1208,6 +1209,7 @@ function zobrazNazevKategorie(kategorie) {
 }
 
 function vykresliProdukty() {
+    vykresliTipy();
     const obsah = document.getElementById("obsah");
     const zobrazeno = filtrujProdukty();
     obsah.innerHTML = "";
@@ -1265,6 +1267,25 @@ function vykresliProdukty() {
             </article>
         `);
     });
+}
+
+
+const honzovyTipy = [
+ ['191900','Uzený losos','Na chlebíčky i víkendovou snídani.'],
+ ['465184','Čedarové uhlíky','Pikantní občerstvení k oblíbenému dipu.'],
+ ['709306','Kachní stehna sous-vide','Na nedělní oběd bez dlouhého vaření.'],
+ ['418055','Dýně Hokkaidó','Na krémovou polévku nebo podzimní přílohu.'],
+ ['421640','Lesní ovoce','Do koláče, kaše i ovocné omáčky.']
+];
+function vykresliTipy(){
+ const sekce=document.getElementById('honzovyTipy');
+ if(!sekce)return;
+ const vyber=honzovyTipy.map(([id,nazev,text])=>({id,nazev,text,p:produkty.find(p=>String(p.id)===id)})).filter(x=>x.p&&jeProduktViditelny(x.id)&&Number.isFinite(cenaProduktu(x.id)));
+ sekce.hidden=!vyber.length||aktivniKategorie!==FILTR_VSE||!!hledanyText.trim();
+ sekce.innerHTML='<div class="tips-heading"><div><p>VYBRÁNO PRO VÁS</p><h2 id="tipsTitle">Honzovy tipy</h2></div><span>Ceny za celé balení včetně DPH</span></div><div class="tips-grid">'+vyber.map(({id,nazev,text,p})=>{
+ const index=produkty.findIndex(x=>String(x.id)===id),pocet=mnozstviProduktuVKosiku(id),vaha=/cca|dle váhy/i.test(p.baleni);
+ return '<article class="tip-card"><img loading="lazy" src="'+escapeHtml(window.HONZUV_MARKET_FOTKY[id]||'data:,')+'" alt="'+escapeHtml(p.nazev)+'" onerror="this.replaceWith(vytvorNahledBezFotky())"><div class="tip-body"><h3>'+escapeHtml(nazev)+'</h3><p>'+escapeHtml(text)+'</p><small>'+escapeHtml(p.baleni)+'</small><strong class="tip-price">'+(vaha?'cca ':'')+formatCena.format(cenaProduktu(id))+'</strong>'+(vaha?'<small>Konečná cena podle hmotnosti</small>':'')+'<button type="button" class="add-button" onclick="pridejDoKosiku('+index+',this)" aria-label="Přidat do košíku: '+escapeHtml(nazev)+'">Přidat do košíku'+(pocet?' · '+pocet+' v košíku':'')+'</button></div></article>';
+ }).join('')+'</div>';
 }
 
 function ulozOblibene(){localStorage.setItem(OBLIBENE_STORAGE_KEY,JSON.stringify([...oblibene]));}
