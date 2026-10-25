@@ -768,6 +768,18 @@ main {
     <link rel="stylesheet" href="market-family.css?v=20261013-tips">
     <script src="fotky-manifest.js?v=20260919-1"></script>
     <script src="katalog-zaloha.js?v=20261004-sheets"></script>
+<style>
+.category-family {border-bottom:1px solid #e4ece7;padding:4px 0;}
+.category-family summary {display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none;padding:13px 12px;color:#085c40;font-weight:750;border-radius:10px;}
+.category-family summary::-webkit-details-marker {display:none;}
+.category-family summary:hover {background:#edf6f0;}
+.category-family summary:focus-visible {outline:2px solid #08724e;outline-offset:2px;}
+.family-count {margin-left:auto;font-size:12px;opacity:.7;}
+.family-chevron {transition:transform .15s;}
+.category-family[open] .family-chevron {transform:rotate(180deg);}
+.category-children {margin:0 0 8px 13px;padding-left:8px;border-left:2px solid #dcebe2;}
+.category-children .category-link {font-size:13px;}
+</style>
 </head>
 <body>
     <div class="market-service-strip">Objednávky do úterý 17:00 <span>Odběr v Otvovicích · Rozvoz po domluvě</span></div>
@@ -1197,12 +1209,24 @@ function vytvorFiltry() {
         const poradiKategorie = k => Number(k.poradi) || 9999;
         return poradiKategorie(a)-poradiKategorie(b);
     });
+    const button = (key, label, count) => '<button class="category-link" type="button" data-kategorie="'+escapeHtml(key)+'"><span>'+escapeHtml(label)+'</span><strong>'+count+'</strong></button>';
+    const groups = new Set();
     list.innerHTML=kats.map(k=>{
-        const pocet=produkty.filter(p=>p.kategorie===k.kategorie&&jeProduktViditelny(p.id)).length;
-        return `<div class="category-group"><button class="category-link" type="button" data-kategorie="${escapeHtml(k.kategorie)}"><span>${escapeHtml(k.nazev)}</span><strong>${pocet}</strong></button></div>`;
-    }).join("");
-    list.querySelectorAll(".category-link").forEach(b=>b.addEventListener("click",()=>filtrKategorie(b.dataset.kategorie)));
+        const family = /ryby.*mořské plody/i.test(k.kategorie) ? 'Ryby' : /^(Maso|Chlazené maso|Čerstvé maso|Mražené maso)$/.test(k.kategorie) ? 'Maso' : '';
+        if (!family) return '<div class="category-group">'+button(k.kategorie,k.nazev,produkty.filter(p=>p.kategorie===k.kategorie&&jeProduktViditelny(p.id)).length)+'</div>';
+        if(groups.has(family)) return ''; groups.add(family);
+        const children = family === 'Ryby' ? [['ryby-vse','Všechny ryby'],['ryby-chlazene','Čerstvé / chlazené'],['ryby-mrazene','Mražené']] : [['maso-vse','Všechno maso'],['maso-chlazene','Čerstvé / chlazené'],['maso-mrazene','Mražené']];
+        const count = key => produkty.filter(p=>jeProduktViditelny(p.id)&&patriDoVetve(p,key)).length;
+        return '<details class="category-family"><summary>'+family+'<span class="family-count">'+count(children[0][0])+'</span><span class="family-chevron" aria-hidden="true">⌄</span></summary><div class="category-children">'+children.map(([key,label])=>'<div class="category-group">'+button(key,label,count(key))+'</div>').join('')+'</div></details>';
+    }).join('');
+    list.querySelectorAll('.category-link').forEach(b=>b.addEventListener('click',()=>filtrKategorie(b.dataset.kategorie)));
     nastavAktivniTlacitko();
+}
+function patriDoVetve(p, key) {
+    const ryba = /ryby.*mořské plody/i.test(p.kategorie);
+    const maso = /^(Maso|Chlazené maso|Čerstvé maso|Mražené maso)$/.test(p.kategorie);
+    const mrazene = /mražen/i.test(p.kategorie) || (maso && (/mražen/i.test(p.popis || '') || String(p.id)==='261009'));
+    return ({'ryby-vse':ryba,'ryby-chlazene':ryba&&!mrazene,'ryby-mrazene':ryba&&mrazene,'maso-vse':maso,'maso-chlazene':maso&&!mrazene,'maso-mrazene':maso&&mrazene})[key] || false;
 }
 function zobrazNazevKategorie(kategorie) {
     return kategorieNastaveni.find(k => k.kategorie === kategorie)?.nazev || kategorie;
@@ -1328,7 +1352,7 @@ function filtrujProdukty() {
         else if(aktivniKategorie===FILTR_DOPORUCUJEME) ok=jeDoporucujeme(p.id);
         else if(aktivniKategorie===FILTR_OBLIBENE) ok=jeOblibeny(p.id);
         else if(aktivniKategorie===FILTR_STALA_NABIDKA) ok=jeStalaNabidka(p.id);
-        else ok=p.kategorie===aktivniKategorie;
+        else ok=patriDoVetve(p,aktivniKategorie)||p.kategorie===aktivniKategorie;
         const text=`${p.nazev} ${p.id} ${p.baleni} ${p.kategorie}`.toLocaleLowerCase("cs-CZ");
         return ok&&text.includes(hledani);
     });
@@ -1350,6 +1374,8 @@ function nastavAktivniTlacitko() {
     document.querySelectorAll(".category-link").forEach(tlacitko => {
         const aktivni = tlacitko.dataset.kategorie === aktivniKategorie;
         tlacitko.classList.toggle("active", aktivni);
+        tlacitko.setAttribute("aria-pressed", String(aktivni));
+        if (aktivni && tlacitko.closest("details")) tlacitko.closest("details").open = true;
         tlacitko.closest(".category-group")?.classList.toggle("category-group-active", aktivni);
     });
 }
